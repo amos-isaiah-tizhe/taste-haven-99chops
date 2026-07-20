@@ -1,0 +1,121 @@
+<%- include('../partials/header') %>
+
+<section class="auth-page">
+  <div class="auth-container">
+    <div class="auth-brand">
+      <a href="/" class="auth-logo" aria-label="Home">
+        <i class="fas fa-utensils" aria-hidden="true"></i>
+      </a>
+      <h2>Join the Family!</h2>
+      <p>Create your free account to start ordering great food</p>
+    </div>
+
+    <div class="auth-card auth-card-wide">
+      <h1 class="auth-title">Create Your Account</h1>
+
+      <% if (errors && errors.length > 0) { %>
+      <div class="auth-error-list" role="alert">
+        <% errors.forEach(err => { %>
+        <div class="auth-error"><i class="fas fa-exclamation-circle" aria-hidden="true"></i> <%= err.msg %></div>
+        <% }) %>
+      </div>
+      <% } %>
+
+      <form action="/auth/register" method="POST" class="auth-form" novalidate>
+        <div class="form-row-2">
+          <div class="form-group">
+            <label for="firstName"><i class="fas fa-user" aria-hidden="true"></i> First Name</label>
+            <input type="text" id="firstName" name="firstName" class="form-control"
+              placeholder="e.g. Amos" value="<%= formData.firstName || '' %>"
+              required aria-required="true" autocomplete="given-name" />
+          </div>
+          <div class="form-group">
+            <label for="lastName"><i class="fas fa-user" aria-hidden="true"></i> Last Name</label>
+            <input type="text" id="lastName" name="lastName" class="form-control"
+              placeholder="e.g. Tizhe" value="<%= formData.lastName || '' %>"
+              required aria-required="true" autocomplete="family-name" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="email"><i class="fas fa-envelope" aria-hidden="true"></i> Email Address</label>
+          <input type="email" id="email" name="email" class="form-control"
+            placeholder="your@email.com" value="<%= formData.email || '' %>"
+            required aria-required="true" autocomplete="email" />
+        </div>
+
+        <div class="form-group">
+          <label for="phone"><i class="fas fa-phone" aria-hidden="true"></i> Phone Number</label>
+          <input type="tel" id="phone" name="phone" class="form-control"
+            placeholder="e.g. 08012345678" value="<%= formData.phone || '' %>"
+            required aria-required="true" autocomplete="tel" />
+          <small class="form-hint">Nigerian phone number (e.g. 0801 234 5678)</small>
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label for="password"><i class="fas fa-lock" aria-hidden="true"></i> Password</label>
+            <div class="password-input-wrap">
+              <input type="password" id="password" name="password" class="form-control"
+                placeholder="Min 8 chars, upper+lower+number"
+                required aria-required="true" autocomplete="new-password"
+                aria-describedby="passwordStrengthLabel" />
+              <button type="button" class="password-toggle"
+                data-toggle-password="password" aria-label="Show password">
+                <i class="fas fa-eye" aria-hidden="true"></i>
+              </button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="confirmPassword"><i class="fas fa-lock" aria-hidden="true"></i> Confirm Password</label>
+            <div class="password-input-wrap">
+              <input type="password" id="confirmPassword" name="confirmPassword" class="form-control"
+                placeholder="Repeat your password"
+                required aria-required="true" autocomplete="new-password" />
+              <button type="button" class="password-toggle"
+                data-toggle-password="confirmPassword" aria-label="Show confirm password">
+                <i class="fas fa-eye" aria-hidden="true"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Password strength (driven by auth.js module) -->
+        <div class="password-strength" aria-live="polite">
+          <div class="strength-bar"><div id="passwordStrengthBar"></div></div>
+          <span id="passwordStrengthLabel"></span>
+        </div>
+
+        <div class="form-group form-checkbox">
+          <label class="check-label">
+            <input type="checkbox" name="terms" required aria-required="true" />
+            <span>I agree to the <a href="/contact" target="_blank">terms of service</a> and confirm I am ordering for Keffi, Nasarawa.</span>
+          </label>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-full btn-auth">
+          <i class="fas fa-user-plus" aria-hidden="true"></i> Create Account
+        </button>
+      </form>
+
+      <div class="auth-footer">
+        <p>Already have an account? <a href="/auth/login">Login here</a></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="auth-bg-panel auth-bg-register" aria-hidden="true">
+    <div class="auth-bg-content">
+      <h2>Start Ordering in Minutes</h2>
+      <ol class="auth-steps">
+        <li><span>1</span> Create your free account</li>
+        <li><span>2</span> Browse our menu</li>
+        <li><span>3</span> Customise your meal</li>
+        <li><span>4</span> Place order &amp; confirm on WhatsApp</li>
+        <li><span>5</span> Enjoy your meal! <i class="fas fa-utensils"></i></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<%- include('../partials/footer') %>

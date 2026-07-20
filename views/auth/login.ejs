@@ -1,0 +1,77 @@
+<%- include('../partials/header') %>
+
+<section class="auth-page">
+  <div class="auth-container">
+    <div class="auth-brand">
+      <a href="/" class="auth-logo" aria-label="Home">
+        <i class="fas fa-utensils" aria-hidden="true"></i>
+      </a>
+      <h2>Welcome Back!</h2>
+      <p>Log in to order delicious meals from Taste Heaven &amp; 99Chops</p>
+    </div>
+
+    <div class="auth-card">
+      <h1 class="auth-title">Login to Your Account</h1>
+
+      <% if (errors && errors.length > 0) { %>
+      <div class="auth-error-list" role="alert">
+        <% errors.forEach(err => { %>
+        <div class="auth-error">
+          <i class="fas fa-exclamation-circle" aria-hidden="true"></i> <%= err.msg %>
+        </div>
+        <% }) %>
+      </div>
+      <% } %>
+
+      <form action="/auth/login" method="POST" class="auth-form" novalidate>
+        <div class="form-group">
+          <label for="email"><i class="fas fa-envelope" aria-hidden="true"></i> Email Address</label>
+          <input type="email" id="email" name="email" class="form-control"
+            placeholder="your@email.com"
+            value="<%= formData.email || '' %>"
+            required autocomplete="email" aria-required="true" />
+        </div>
+
+        <div class="form-group">
+          <label for="password"><i class="fas fa-lock" aria-hidden="true"></i> Password</label>
+          <div class="password-input-wrap">
+            <input type="password" id="password" name="password" class="form-control"
+              placeholder="Your password"
+              required autocomplete="current-password" aria-required="true" />
+            <button type="button" class="password-toggle"
+              data-toggle-password="password"
+              aria-label="Show password">
+              <i class="fas fa-eye" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-full btn-auth">
+          <i class="fas fa-sign-in-alt" aria-hidden="true"></i> Login
+        </button>
+      </form>
+
+      <div class="auth-footer">
+        <p>Don&rsquo;t have an account? <a href="/auth/register">Create one free</a></p>
+        <a href="https://wa.me/<%= whatsappNumber %>" target="_blank" rel="noopener noreferrer" class="auth-help">
+          <i class="fab fa-whatsapp" aria-hidden="true"></i> Need help? Chat with us
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="auth-bg-panel" aria-hidden="true">
+    <div class="auth-bg-content">
+      <h2>&ldquo;Great Food, Great Taste, Every Time!&rdquo;</h2>
+      <p>Keffi&rsquo;s most loved restaurant &mdash; serving authentic Nigerian meals with love.</p>
+      <ul class="auth-bg-features">
+        <li><i class="fas fa-check-circle"></i> Fresh daily meals</li>
+        <li><i class="fas fa-check-circle"></i> Easy online ordering</li>
+        <li><i class="fas fa-check-circle"></i> WhatsApp confirmation</li>
+        <li><i class="fas fa-check-circle"></i> Multiple payment options</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<%- include('../partials/footer') %>

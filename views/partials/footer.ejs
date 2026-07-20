@@ -1,0 +1,164 @@
+</main>
+
+<!-- Footer -->
+<footer class="footer" role="contentinfo">
+  <div class="footer-top">
+    <div class="container footer-grid">
+
+      <!-- Brand -->
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <span class="footer-logo-icon" aria-hidden="true"><i class="fas fa-utensils"></i></span>
+          <div>
+            <span class="footer-logo-name">Taste Heaven</span>
+            <span class="footer-logo-sub">&amp; 99Chops</span>
+          </div>
+        </div>
+        <p class="footer-tagline">&ldquo;Great Food, Great Taste, Every Time!&rdquo;</p>
+        <div class="footer-social" aria-label="Social links">
+          <a href="https://wa.me/<%= whatsappNumber %>" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
+            <i class="fab fa-whatsapp" aria-hidden="true"></i>
+          </a>
+          <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f" aria-hidden="true"></i></a>
+          <a href="#" aria-label="Instagram"><i class="fab fa-instagram" aria-hidden="true"></i></a>
+          <a href="#" aria-label="Twitter/X"><i class="fab fa-x-twitter" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <!-- Quick Links -->
+      <div class="footer-links">
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="/menu">Full Menu</a></li>
+          <li><a href="/menu/category/combo-offers"><i class="fas fa-star" aria-hidden="true"></i> Combo Deals</a></li>
+          <li><a href="/about">About Us</a></li>
+          <li><a href="/contact">Contact</a></li>
+        </ul>
+      </div>
+
+      <!-- Categories -->
+      <div class="footer-links">
+        <h4>Menu Categories</h4>
+        <ul>
+          <li><a href="/menu/category/rice-meals"><i class="fas fa-bowl-rice" aria-hidden="true"></i> Rice Meals</a>
+          </li>
+          <li><a href="/menu/category/swallow-meals"><i class="fas fa-circle-dot" aria-hidden="true"></i> Swallow
+              Meals</a></li>
+          <li><a href="/menu/category/breakfast"><i class="fas fa-sun" aria-hidden="true"></i> Breakfast</a></li>
+          <li><a href="/menu/category/snacks"><i class="fas fa-cookie-bite" aria-hidden="true"></i> Snacks</a></li>
+          <li><a href="/menu/category/drinks"><i class="fas fa-glass-water" aria-hidden="true"></i> Drinks</a></li>
+        </ul>
+      </div>
+
+      <!-- Contact -->
+      <div class="footer-contact">
+        <h4>Find Us</h4>
+        <ul>
+          <li>
+            <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
+            <span>Low-cost, behind youth center,<br />Keffi, Nasarawa State, Nigeria</span>
+          </li>
+          <li>
+            <i class="fas fa-phone" aria-hidden="true"></i>
+            <a href="tel:<%= restaurantPhone %>">
+              <%= restaurantPhone %>
+            </a>
+          </li>
+          <li>
+            <i class="fab fa-whatsapp" aria-hidden="true"></i>
+            <a href="https://wa.me/<%= whatsappNumber %>" target="_blank" rel="noopener noreferrer">09064367123</a>
+          </li>
+          <li>
+            <i class="fas fa-clock" aria-hidden="true"></i>
+            <span>Mon &ndash; Sun: 7:00 AM &ndash; 10:00 PM</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <div class="container footer-bottom-inner">
+      <p>&copy; <%= new Date().getFullYear() %> Taste Heaven &amp; 99Chops. All rights reserved.</p>
+      <p class="footer-dev">
+        Developed by
+        <a href="https://founder.onexportalhq.com/" target="_blank" rel="noopener noreferrer">Amos Isaiah
+          Tizhe</a>
+        &mdash; <a href="https://onexportalhq.com/about-onexportal/" target="_blank"
+          rel="noopener noreferrer"><span style="color: var(--blue)">OneXportal</span></a>
+      </p>
+    </div>
+  </div>
+</footer>
+
+<!-- Global Customize Modal — available on every page -->
+<div class="modal-overlay" id="customizeOverlay" role="dialog" aria-modal="true" aria-labelledby="customizeItemName" style="display:none">
+  <div class="modal customize-modal">
+    <div class="modal-header">
+      <h3 id="customizeItemName">Customize Your Order</h3>
+      <button id="customizeCloseBtn" class="modal-close" aria-label="Close customize dialog">
+        <i class="fas fa-times" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="customize-price-row">
+        <span>Price: <strong id="customizeItemPrice">&#8358;0</strong></span>
+        <div class="customize-qty-control" role="group" aria-label="Quantity">
+          <button id="customizeQtyDec" aria-label="Decrease quantity">
+            <i class="fas fa-minus" aria-hidden="true"></i>
+          </button>
+          <span id="customizeQty" aria-live="polite">1</span>
+          <button id="customizeQtyInc" aria-label="Increase quantity">
+            <i class="fas fa-plus" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+
+      <fieldset id="customizeSpiceGroup" class="customize-group">
+        <legend class="customize-label">
+          <i class="fas fa-pepper-hot" aria-hidden="true"></i> Spice Level
+        </legend>
+        <div class="spice-options" role="radiogroup" aria-label="Spice level">
+          <label class="spice-opt"><input type="radio" name="spiceLevel" value="no-spice" /> No Spice</label>
+          <label class="spice-opt"><input type="radio" name="spiceLevel" value="mild" /> Mild</label>
+          <label class="spice-opt"><input type="radio" name="spiceLevel" value="medium" checked /> Medium</label>
+          <label class="spice-opt"><input type="radio" name="spiceLevel" value="spicy" /> Spicy</label>
+          <label class="spice-opt"><input type="radio" name="spiceLevel" value="extra-spicy" /> Extra Spicy</label>
+        </div>
+      </fieldset>
+
+      <div id="customizeOptions"></div>
+
+      <div class="customize-group">
+        <label class="customize-label" for="customizeInstructions">
+          <i class="fas fa-comment" aria-hidden="true"></i> Special Instructions
+        </label>
+        <textarea id="customizeInstructions" rows="3"
+          placeholder="Any special requests? e.g. no onions, extra sauce&hellip;"
+          class="form-control"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button id="customizeCancelBtn2" class="btn btn-outline">Cancel</button>
+      <button id="customizeConfirmBtn" class="btn btn-primary">
+        <i class="fas fa-cart-plus" aria-hidden="true"></i>
+        Add to Cart &mdash; <span id="customizeTotalPrice">&#8358;0</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast container (populated by JS) -->
+
+<!-- Toast container (populated by JS) -->
+<div id="toastContainer" class="toast-container" role="region" aria-label="Notifications" aria-live="polite"></div>
+
+<!-- Modals root (modules inject here) -->
+<div id="modalsRoot"></div>
+
+<!-- Main JS bundle (type=module enforces strict mode + no global scope leaks) -->
+<script type="module" src="/js/app.js"></script>
+</body>
+
+</html>

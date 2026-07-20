@@ -1,0 +1,226 @@
+<%- include('../partials/header') %>
+
+<section class="page-hero page-hero-sm">
+  <div class="container">
+    <h1 class="page-hero-title"><i class="fas fa-credit-card" aria-hidden="true"></i> Checkout</h1>
+    <p class="page-hero-sub">Review your order and complete payment</p>
+  </div>
+</section>
+
+<section class="checkout-page">
+  <div class="container">
+    <div class="checkout-grid">
+
+      <!-- Left col -->
+      <div class="checkout-form-col">
+
+        <!-- Order Items -->
+        <div class="checkout-card">
+          <h3 class="checkout-card-title"><i class="fas fa-list" aria-hidden="true"></i> Your Order</h3>
+          <div class="checkout-items" role="list">
+            <% cart.forEach(item => { %>
+            <div class="checkout-item" role="listitem">
+              <div class="checkout-item-icon" aria-hidden="true">
+                <i class="fas <%= item.menuItem.category==='drinks'?'fa-glass-water':item.menuItem.category==='snacks'?'fa-cookie-bite':'fa-utensils' %>"></i>
+              </div>
+              <div class="checkout-item-details">
+                <span class="checkout-item-name"><%= item.name %></span>
+                <div class="checkout-item-meta">
+                  <% if (item.spiceLevel && item.spiceLevel !== 'medium') { %>
+                  <span class="meta-tag"><i class="fas fa-pepper-hot" aria-hidden="true"></i> <%= item.spiceLevel %></span>
+                  <% } %>
+                  <% if (item.extraSpices?.length)  { %><span class="meta-tag"><i class="fas fa-plus-circle" aria-hidden="true"></i> <%= item.extraSpices.join(', ') %></span><% } %>
+                  <% if (item.removeItems?.length)  { %><span class="meta-tag"><i class="fas fa-minus-circle" aria-hidden="true"></i> No <%= item.removeItems.join(', ') %></span><% } %>
+                  <% if (item.addItems?.length)     { %><span class="meta-tag"><i class="fas fa-check-circle" aria-hidden="true"></i> Add <%= item.addItems.join(', ') %></span><% } %>
+                  <% if (item.specialInstructions)  { %><span class="meta-tag"><i class="fas fa-comment" aria-hidden="true"></i> <%= item.specialInstructions %></span><% } %>
+                </div>
+              </div>
+              <div class="checkout-item-qty" aria-label="Quantity">x<%= item.quantity %></div>
+              <div class="checkout-item-price">&#8358;<%= item.itemSubtotal.toLocaleString('en-NG') %></div>
+            </div>
+            <% }) %>
+          </div>
+          <div class="checkout-subtotal">
+            <a href="/menu" class="btn btn-outline btn-sm"><i class="fas fa-plus" aria-hidden="true"></i> Add More Items</a>
+            <span class="checkout-subtotal-amount">Subtotal: <strong>&#8358;<%= subtotal.toLocaleString('en-NG') %></strong></span>
+          </div>
+        </div>
+
+        <!-- Delivery Options -->
+        <div class="checkout-card">
+          <h3 class="checkout-card-title"><i class="fas fa-motorcycle" aria-hidden="true"></i> Delivery Options</h3>
+          <div class="delivery-type-toggle" role="radiogroup" aria-label="Delivery method">
+            <label class="delivery-type-opt">
+              <input type="radio" name="deliveryType" value="delivery" id="deliveryRadio" checked />
+              <div class="delivery-type-box">
+                <i class="fas fa-motorcycle" aria-hidden="true"></i>
+                <span>Home Delivery</span>
+              </div>
+            </label>
+            <label class="delivery-type-opt">
+              <input type="radio" name="deliveryType" value="pickup" id="pickupRadio" />
+              <div class="delivery-type-box">
+                <i class="fas fa-store" aria-hidden="true"></i>
+                <span>Pickup</span>
+              </div>
+            </label>
+          </div>
+
+          <div id="deliveryFields">
+            <div class="form-group">
+              <label for="deliveryAddress">Delivery Address <span class="required" aria-hidden="true">*</span></label>
+              <textarea id="deliveryAddress" name="deliveryAddress" rows="2"
+                placeholder="Enter your full delivery address in Keffi&hellip;"
+                class="form-control" aria-required="true"><%= user.defaultAddress || '' %></textarea>
+            </div>
+            <div class="form-group">
+              <label for="deliveryLandmark">Landmark <span style="font-weight:400;color:var(--gray)">(optional)</span></label>
+              <input type="text" id="deliveryLandmark" name="deliveryLandmark"
+                placeholder="Near a notable landmark or building&hellip;" class="form-control" />
+            </div>
+            <p class="delivery-fee-note">
+              <i class="fas fa-info-circle" aria-hidden="true"></i>
+              Delivery fee will be agreed via WhatsApp based on your location.
+            </p>
+          </div>
+
+          <div id="pickupFields" hidden>
+            <div class="pickup-address-box">
+              <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
+              <div>
+                <strong>Pickup Location</strong>
+                <p>Low-cost, behind youth center, Keffi, Nasarawa State</p>
+                <p class="pickup-hours"><i class="fas fa-clock" aria-hidden="true"></i> Mon&ndash;Sun: 7AM &ndash; 10PM</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Schedule Time -->
+        <div class="checkout-card">
+          <h3 class="checkout-card-title"><i class="fas fa-clock" aria-hidden="true"></i> Scheduled Time</h3>
+          <div class="form-group">
+            <label for="scheduledTime">When do you want your order? <span class="required" aria-hidden="true">*</span></label>
+            <input type="datetime-local" id="scheduledTime" name="scheduledTime" class="form-control"
+              min="<%= new Date(Date.now()+30*60*1000).toISOString().slice(0,16) %>"
+              value="<%= new Date(Date.now()+45*60*1000).toISOString().slice(0,16) %>"
+              aria-required="true" />
+            <small class="form-hint">Minimum 30 minutes from now. We&rsquo;ll confirm via WhatsApp.</small>
+          </div>
+          <div class="quick-times" role="group" aria-label="Quick time selection">
+            <span>Quick select:</span>
+            <button type="button" class="quick-time-btn" data-quick-minutes="30">In 30 min</button>
+            <button type="button" class="quick-time-btn" data-quick-minutes="60">In 1 hour</button>
+            <button type="button" class="quick-time-btn" data-quick-minutes="120">In 2 hours</button>
+          </div>
+        </div>
+
+        <!-- Payment Method -->
+        <div class="checkout-card">
+          <h3 class="checkout-card-title"><i class="fas fa-wallet" aria-hidden="true"></i> Payment Method</h3>
+          <div class="payment-options" role="radiogroup" aria-label="Payment method">
+            <label class="payment-opt">
+              <input type="radio" name="paymentMethod" value="cash" id="cashPayment" checked />
+              <div class="payment-opt-box">
+                <i class="fas fa-money-bills" aria-hidden="true"></i>
+                <div>
+                  <strong>Cash on Delivery/Pickup</strong>
+                  <span>Pay with cash when you receive your order</span>
+                </div>
+              </div>
+            </label>
+            <label class="payment-opt">
+              <input type="radio" name="paymentMethod" value="transfer" id="transferPayment" />
+              <div class="payment-opt-box">
+                <i class="fas fa-university" aria-hidden="true"></i>
+                <div>
+                  <strong>Bank Transfer</strong>
+                  <span>Transfer to our account (details via WhatsApp)</span>
+                </div>
+              </div>
+            </label>
+            <label class="payment-opt">
+              <input type="radio" name="paymentMethod" value="card" id="cardPayment" />
+              <div class="payment-opt-box">
+                <i class="fas fa-credit-card" aria-hidden="true"></i>
+                <div>
+                  <strong>Card Payment</strong>
+                  <span>Secure online payment via Paystack</span>
+                </div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="checkout-card">
+          <h3 class="checkout-card-title"><i class="fas fa-comment-alt" aria-hidden="true"></i> Additional Notes</h3>
+          <label for="specialInstructions" class="visually-hidden">Special instructions for the entire order</label>
+          <textarea id="specialInstructions" rows="3"
+            placeholder="Any special instructions for the entire order&hellip;" class="form-control"></textarea>
+        </div>
+      </div>
+
+      <!-- Right: Summary -->
+      <div class="checkout-summary-col">
+        <div class="checkout-summary-card sticky-card">
+          <h3 class="checkout-card-title"><i class="fas fa-receipt" aria-hidden="true"></i> Order Summary</h3>
+
+          <div class="summary-line">
+            <span>Subtotal (<%= cart.reduce((s,i)=>s+i.quantity,0) %> items)</span>
+            <span>&#8358;<%= subtotal.toLocaleString('en-NG') %></span>
+          </div>
+          <div class="summary-line" id="deliveryFeeLine">
+            <span>Delivery Fee</span>
+            <span class="delivery-fee-note-sm">Confirmed on WhatsApp</span>
+          </div>
+          <div class="summary-divider"></div>
+          <div class="summary-line summary-total">
+            <span>Total</span>
+            <span id="checkoutTotal">&#8358;<%= subtotal.toLocaleString('en-NG') %></span>
+          </div>
+
+          <div class="summary-customer" aria-label="Your details">
+            <h4>Customer Details</h4>
+            <div class="summary-customer-info">
+              <div><i class="fas fa-user" aria-hidden="true"></i> <%= user.firstName %> <%= user.lastName %></div>
+              <div><i class="fas fa-phone" aria-hidden="true"></i> <%= user.phone %></div>
+              <div><i class="fas fa-envelope" aria-hidden="true"></i> <%= user.email %></div>
+            </div>
+          </div>
+
+          <!-- Hidden field for Paystack email -->
+          <input type="hidden" id="checkoutEmail" value="<%= user.email %>" />
+
+          <button id="placeOrderBtn" class="btn btn-primary btn-full btn-lg">
+            <i class="fas fa-check" aria-hidden="true"></i> Place Order
+          </button>
+
+          <div id="cardPayNow" hidden>
+            <div class="or-divider" aria-hidden="true">or</div>
+            <button id="paystackPayBtn" class="btn btn-paystack btn-full">
+              <i class="fas fa-credit-card" aria-hidden="true"></i>
+              Pay &#8358;<%= subtotal.toLocaleString('en-NG') %> with Paystack
+            </button>
+          </div>
+
+          <div class="whatsapp-notice" role="note">
+            <i class="fab fa-whatsapp" aria-hidden="true"></i>
+            After placing your order, you&rsquo;ll be redirected to WhatsApp to confirm with us directly.
+          </div>
+
+          <div class="security-badges" aria-label="Security badges">
+            <span><i class="fas fa-lock" aria-hidden="true"></i> Secure</span>
+            <span><i class="fas fa-shield-alt" aria-hidden="true"></i> Protected</span>
+            <span><i class="fas fa-check-circle" aria-hidden="true"></i> Verified</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Paystack SDK loaded with nonce -->
+<script src="https://js.paystack.co/v1/inline.js"></script>
+
+<%- include('../partials/footer') %>

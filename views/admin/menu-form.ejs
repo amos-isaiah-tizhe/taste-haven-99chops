@@ -1,0 +1,115 @@
+<%- include('../partials/header') %>
+
+<section class="admin-page">
+  <div class="admin-sidebar"><%- include('./partials/sidebar') %></div>
+  <div class="admin-main">
+
+    <div class="admin-topbar">
+      <div>
+        <h1 class="admin-page-title"><%= item && item._id ? 'Edit Menu Item' : 'Add Menu Item' %></h1>
+        <p class="admin-page-sub"><a href="/admin/menu" style="color:var(--red)"><i class="fas fa-arrow-left"></i> Back to Menu</a></p>
+      </div>
+    </div>
+
+    <% if (errors && errors.length > 0) { %>
+    <div style="margin-bottom:20px">
+      <% errors.forEach(err => { %>
+      <div class="auth-error" style="margin-bottom:6px"><i class="fas fa-exclamation-circle"></i> <%= err.msg %></div>
+      <% }) %>
+    </div>
+    <% } %>
+
+    <div class="admin-card" style="max-width:720px">
+      <form action="/admin/menu/<%= item && item._id ? item._id + '/edit' : 'new' %>"
+      method="POST" enctype="multipart/form-data">
+        <div class="form-row-2">
+          <div class="form-group">
+            <label>Item Name <span class="required">*</span></label>
+            <input type="text" name="name" class="form-control" value="<%= item?.name || '' %>" required placeholder="e.g. Jollof Rice + Beef" />
+          </div>
+          <div class="form-group">
+            <label>Category <span class="required">*</span></label>
+            <select name="category" class="form-control" required>
+              <option value="">Select category...</option>
+              <% [
+                [['rice-meals','Rice Meals'],
+['swallow-meals','Swallow Meals'],
+['breakfast','Breakfast'],
+['snacks','Snacks'],
+['drinks','Drinks'],
+                ['combo-offers','⭐ Combo Offers']
+              ].forEach(([val, label]) => { %>
+              <option value="<%= val %>" <%= (item?.category === val) ? 'selected' : '' %>><%= label %></option>
+              <% }) %>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label>Price (₦) <span class="required">*</span></label>
+            <input type="number" name="price" class="form-control" value="<%= item?.price || '' %>" required min="0" placeholder="e.g. 2500" />
+          </div>
+          <div class="form-group">
+            <label>Prep Time (minutes)</label>
+            <input type="number" name="prepTime" class="form-control" value="<%= item?.prepTime || 15 %>" min="0" placeholder="15" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Description</label>
+          <textarea name="description" class="form-control" rows="3" placeholder="Brief description of the dish..."><%= item?.description || '' %></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Tags (comma-separated)</label>
+          <input type="text" name="tags" class="form-control" value="<%= item?.tags?.join(', ') || '' %>" placeholder="rice, beef, jollof, popular" />
+          <small class="form-hint">Tags help with search. Use lowercase, comma-separated.</small>
+        </div>
+
+        <div class="form-row-2" style="margin-top:4px">
+          <div class="form-group">
+            <label>Available?</label>
+            <select name="isAvailable" class="form-control">
+              <option value="true"  <%= (!item || item.isAvailable)  ? 'selected' : '' %>>Available</option>
+<option value="false" <%= (item && !item.isAvailable) ? 'selected' : '' %>>Unavailable</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Featured (show on homepage)?</label>
+            <select name="isFeatured" class="form-control">
+              <option value="false" <%= (!item || !item.isFeatured) ? 'selected' : '' %>>No</option>
+              <option value="true" <%= (item && item.isFeatured) ? 'selected' : '' %>>⭐ Yes - Featured</option>
+            </select>
+          </div>
+        </div>
+<div class="form-group" style="margin-bottom:20px">
+  <label for="image">
+    <i class="fas fa-image" aria-hidden="true"></i> Food/Drink Image
+  </label>
+  <% if (item && item.image) { %>
+  <div style="margin-bottom:10px">
+    <img src="<%= item.image %>" alt="Current image"
+         style="width:120px;height:90px;object-fit:cover;border-radius:8px;border:1px solid var(--gray-light)" />
+    <p style="font-size:0.78rem;color:var(--gray);margin-top:4px">Current image. Upload a new one to replace it.</p>
+  </div>
+  <% } %>
+  <input type="file" id="image" name="image" class="form-control"
+         accept=".jpg,.jpeg,.png,.webp"
+         style="padding:8px" />
+  <small class="form-hint">JPG, PNG or WebP. Max 5MB. Recommended: 800×600px</small>
+</div>
+
+<div style="display:flex;gap:12px;margin-top:24px">
+        <div style="display:flex;gap:12px;margin-top:24px">
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save"></i> <%= item && item._id ? 'Save Changes' : 'Add Item' %>
+          </button>
+          <a href="/admin/menu" class="btn btn-outline"><i class="fas fa-times"></i> Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<%- include('../partials/footer') %>

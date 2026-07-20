@@ -1,0 +1,122 @@
+<%- include('../partials/header') %>
+
+<section class="admin-page">
+  <div class="admin-sidebar"><%- include('./partials/sidebar') %></div>
+  <div class="admin-main">
+
+    <div class="admin-topbar">
+      <div>
+        <h1 class="admin-page-title">User Management</h1>
+        <p class="admin-page-sub"><%= total %> total users</p>
+      </div>
+    </div>
+
+    <div class="admin-card" style="padding:14px 20px;margin-bottom:20px">
+      <form method="GET" action="/admin/users" class="admin-filter-form">
+        <div class="admin-filter-row">
+          <div class="filter-group" style="flex:1">
+            <label for="userSearch">Search</label>
+            <input type="search" id="userSearch" name="search" value="<%= search %>" placeholder="Name, email or phone&hellip;" class="form-control form-control-sm" />
+          </div>
+          <div class="filter-group">
+            <label for="userRole">Role</label>
+            <select id="userRole" name="role" class="form-control form-control-sm">
+              <option value="">All Roles</option>
+              <option value="customer"   <%= role==='customer'   ?'selected':'' %>>Customers</option>
+              <option value="admin"      <%= role==='admin'      ?'selected':'' %>>Admins</option>
+              <option value="superadmin" <%= role==='superadmin' ?'selected':'' %>>Super Admins</option>
+            </select>
+          </div>
+          <div class="filter-actions">
+            <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-search" aria-hidden="true"></i> Search</button>
+            <a href="/admin/users" class="btn btn-outline btn-sm"><i class="fas fa-times" aria-hidden="true"></i> Clear</a>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <div class="admin-card">
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th scope="col">Name</th>
+              <th scope="col">Email</th>
+              <th scope="col">Phone</th>
+              <th scope="col">Role</th>
+              <th scope="col">Orders</th>
+              <th scope="col">Spent</th>
+              <th scope="col">Status</th>
+              <th scope="col">Joined</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% users.forEach(u => { %>
+            <tr>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div class="user-avatar-small" aria-hidden="true" style="flex-shrink:0">
+                    <%= (u.firstName || '?').charAt(0) %><%= (u.lastName || '?').charAt(0) %>
+                  </div>
+                  <span style="font-weight:600;font-size:0.88rem"><%= u.firstName || '' %> <%= u.lastName || '' %></span>
+                </div>
+              </td>
+              <td style="font-size:0.85rem"><%= u.email %></td>
+              <td style="font-size:0.85rem"><%= u.phone %></td>
+              <td><span class="role-badge role-<%= u.role %>"><%= u.role %></span></td>
+              <td style="text-align:center;font-weight:600"><%= u.orderCount||0 %></td>
+              <td style="color:var(--green);font-weight:600;font-size:0.85rem">&#8358;<%= (u.totalSpent||0).toLocaleString('en-NG') %></td>
+              <td>
+                <span style="font-size:0.78rem;font-weight:600;color:<%= u.isActive?'var(--green)':'var(--red)' %>">
+                  <i class="fas <%= u.isActive?'fa-check-circle':'fa-times-circle' %>" aria-hidden="true"></i>
+                  <%= u.isActive ? 'Active' : 'Inactive' %>
+                </span>
+              </td>
+              <td style="font-size:0.78rem;color:var(--gray)">
+                <time datetime="<%= u.createdAt %>">
+                  <%= new Date(u.createdAt).toLocaleDateString('en-NG',{month:'short',day:'numeric',year:'numeric'}) %>
+                </time>
+              </td>
+              <td>
+                <% if (u._id.toString() !== user._id.toString()) { %>
+                <div class="actions-cell">
+                  <button class="btn btn-sm <%= u.isActive?'btn-warning':'btn-success' %>"
+                    data-toggle-user="<%= u._id %>"
+                    aria-label="<%= u.isActive?'Deactivate':'Activate' %> <%= u.firstName %>">
+                    <%= u.isActive ? 'Deactivate' : 'Activate' %>
+                  </button>
+                  <select class="status-select"
+                    data-role-user="<%= u._id %>"
+                    data-original-role="<%= u.role %>"
+                    aria-label="Change role for <%= u.firstName %>">
+                    <option value="customer"   <%= u.role==='customer'  ?'selected':'' %>>Customer</option>
+                    <option value="admin"      <%= u.role==='admin'     ?'selected':'' %>>Admin</option>
+                    <option value="superadmin" <%= u.role==='superadmin'?'selected':'' %>>Super Admin</option>
+                  </select>
+                </div>
+                <% } else { %>
+                <span style="font-size:0.78rem;color:var(--gray)">(You)</span>
+                <% } %>
+              </td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+
+      <% if (totalPages > 1) { %>
+      <nav class="pagination" aria-label="Users pagination">
+        <% if (currentPage>1){ %><a href="?page=<%= currentPage-1 %>&role=<%= role %>&search=<%= search %>" class="page-btn" aria-label="Previous"><i class="fas fa-chevron-left" aria-hidden="true"></i></a><% } %>
+        <% for(let i=Math.max(1,currentPage-2);i<=Math.min(totalPages,currentPage+2);i++){ %>
+        <a href="?page=<%= i %>&role=<%= role %>&search=<%= search %>" class="page-btn <%= i===currentPage?'active':'' %>" aria-current="<%= i===currentPage?'page':'' %>"><%= i %></a>
+        <% } %>
+        <% if (currentPage<totalPages){ %><a href="?page=<%= currentPage+1 %>&role=<%= role %>&search=<%= search %>" class="page-btn" aria-label="Next"><i class="fas fa-chevron-right" aria-hidden="true"></i></a><% } %>
+        <span class="page-info">Page <%= currentPage %> of <%= totalPages %></span>
+      </nav>
+      <% } %>
+    </div>
+  </div>
+</section>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,123 @@
+<%- include('../partials/header') %>
+
+<section class="admin-page">
+  <div class="admin-sidebar"><%- include('./partials/sidebar') %></div>
+  <div class="admin-main">
+
+    <div class="admin-topbar">
+      <div>
+        <h1 class="admin-page-title">Menu Management</h1>
+        <p class="admin-page-sub"><%= items.length %> items total</p>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <a href="/admin/menu/new" class="btn btn-primary">
+          <i class="fas fa-plus" aria-hidden="true"></i> Add Item
+        </a>
+        <% if (isSuperAdmin) { %>
+        <button id="seedMenuBtn" class="btn btn-outline">
+          <i class="fas fa-database" aria-hidden="true"></i> Re-Seed Menu
+        </button>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="admin-card" style="padding:14px 20px;margin-bottom:20px">
+      <form method="GET" action="/admin/menu" class="admin-filter-form">
+        <div class="admin-filter-row">
+          <div class="filter-group">
+            <label for="filterCategory">Category</label>
+            <select id="filterCategory" name="category" class="form-control form-control-sm">
+              <option value="">All Categories</option>
+              <% [['rice-meals','Rice Meals'],['swallow-meals','Swallow Meals'],['breakfast','Breakfast'],['snacks','Snacks'],['drinks','Drinks'],['combo-offers','Combo Offers']].forEach(([v,l]) => { %>
+              <option value="<%= v %>" <%= activeCategory===v?'selected':'' %>><%= l %></option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="filterAvail">Availability</label>
+            <select id="filterAvail" name="available" class="form-control form-control-sm">
+              <option value="">All</option>
+              <option value="true"  <%= availableFilter==='true' ?'selected':'' %>>Available</option>
+              <option value="false" <%= availableFilter==='false'?'selected':'' %>>Unavailable</option>
+            </select>
+          </div>
+          <div class="filter-actions">
+            <button type="submit" class="btn btn-primary btn-sm">
+              <i class="fas fa-filter" aria-hidden="true"></i> Filter
+            </button>
+            <a href="/admin/menu" class="btn btn-outline btn-sm">
+              <i class="fas fa-times" aria-hidden="true"></i> Clear
+            </a>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Menu Grid -->
+    <% const iconMap = { 'rice-meals':'fa-bowl-rice','swallow-meals':'fa-circle-dot','breakfast':'fa-sun','snacks':'fa-cookie-bite','drinks':'fa-glass-water','combo-offers':'fa-star' }; %>
+    <div class="admin-menu-grid" role="list">
+      <% items.forEach(item => { %>
+      <article class="admin-menu-card <%= !item.isAvailable ? 'unavailable-row' : '' %>" role="listitem" data-deletable-row>
+        <div class="admin-menu-card-header">
+          <div class="admin-menu-icon" aria-hidden="true">
+            <i class="fas <%= iconMap[item.category] || 'fa-utensils' %>"></i>
+          </div>
+          <div class="admin-menu-status">
+            <span class="avail-status <%= item.isAvailable?'status-avail':'status-unavail' %>">
+              <i class="fas <%= item.isAvailable?'fa-check-circle':'fa-times-circle' %>" aria-hidden="true"></i>
+              <%= item.isAvailable ? 'Available' : 'Unavailable' %>
+            </span>
+            <% if (item.isFeatured){ %><span class="badge-tag badge-featured">Popular</span><% } %>
+            <% if (item.isCombo)   { %><span class="badge-tag badge-combo"><i class="fas fa-star" aria-hidden="true"></i> Combo</span><% } %>
+          </div>
+        </div>
+        <div class="admin-menu-card-body">
+          <h3 class="admin-menu-name"><%= item.name %></h3>
+          <div class="admin-menu-cat"><%= item.category.replace(/-/g,' ').toUpperCase() %></div>
+          <div class="admin-menu-price">&#8358;<%= item.price.toLocaleString('en-NG') %></div>
+          <% if (item.description) { %><p class="admin-menu-desc"><%= item.description.substring(0,80) %>&hellip;</p><% } %>
+          <div class="admin-menu-meta">
+            <span><i class="fas fa-shopping-cart" aria-hidden="true"></i> <%= item.orderCount||0 %> orders</span>
+            <span><i class="fas fa-clock" aria-hidden="true"></i> ~<%= item.prepTime||15 %> min</span>
+          </div>
+        </div>
+        <div class="admin-menu-card-footer">
+          <button class="btn btn-sm <%= item.isAvailable?'btn-warning':'btn-success' %>"
+            data-toggle-item="<%= item._id %>"
+            aria-label="<%= item.isAvailable?'Mark unavailable':'Mark available' %>: <%= item.name %>">
+            <i class="fas <%= item.isAvailable?'fa-ban':'fa-check' %>" aria-hidden="true"></i>
+            <%= item.isAvailable ? 'Mark Unavailable' : 'Mark Available' %>
+          </button>
+          <a href="/admin/menu/<%= item._id %>/edit" class="btn btn-sm btn-outline"
+            aria-label="Edit <%= item.name %>">
+            <i class="fas fa-edit" aria-hidden="true"></i> Edit
+          </a>
+          <% if (isSuperAdmin) { %>
+          <button class="btn btn-sm btn-danger"
+            data-delete-url="/admin/menu/<%= item._id %>"
+            data-delete-confirm="Delete <%= item.name %>? This cannot be undone."
+            aria-label="Delete <%= item.name %>">
+            <i class="fas fa-trash" aria-hidden="true"></i>
+          </button>
+          <% } %>
+        </div>
+      </article>
+      <% }) %>
+    </div>
+
+    <% if (items.length === 0) { %>
+    <div class="empty-state">
+      <i class="fas fa-utensils" aria-hidden="true"></i>
+      <h3>No menu items found</h3>
+      <p>Add your first item or seed the default menu.</p>
+      <a href="/admin/menu/new" class="btn btn-primary">
+        <i class="fas fa-plus" aria-hidden="true"></i> Add Item
+      </a>
+    </div>
+    <% } %>
+
+  </div>
+</section>
+
+<%- include('../partials/footer') %>

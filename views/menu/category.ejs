@@ -1,0 +1,145 @@
+<%- include('../partials/header') %>
+
+<section class="page-hero page-hero-sm">
+  <div class="container">
+    <h1 class="page-hero-title">
+      <i class="fas <%= meta.icon || 'fa-utensils' %>" aria-hidden="true"></i>
+      <%= meta.label %>
+    </h1>
+    <p class="page-hero-sub"><%= meta.description || 'Fresh, hot, and made to order' %></p>
+  </div>
+</section>
+
+<section class="menu-page">
+  <div class="container">
+
+    <!-- Category Tabs -->
+    <nav class="category-tabs" aria-label="Menu categories">
+      <% const catMeta = {
+        'rice-meals':    { label:'Rice Meals',   icon:'fa-bowl-rice'   },
+        'swallow-meals': { label:'Swallow Meals', icon:'fa-circle-dot'  },
+        'breakfast':     { label:'Breakfast',     icon:'fa-sun'         },
+        'snacks':        { label:'Snacks',        icon:'fa-cookie-bite' },
+        'drinks':        { label:'Drinks',        icon:'fa-glass-water' },
+        'combo-offers':  { label:'Combo Offers',  icon:'fa-star'        },
+      }; %>
+      <a href="/menu" class="cat-tab">
+        <i class="fas fa-th-large" aria-hidden="true"></i> All Items
+      </a>
+      <% Object.entries(catMeta).forEach(([key, m]) => { %>
+      <a href="/menu/category/<%= key %>"
+         class="cat-tab <%= category === key ? 'active' : '' %>"
+         aria-current="<%= category === key ? 'page' : 'false' %>">
+        <i class="fas <%= m.icon %>" aria-hidden="true"></i> <%= m.label %>
+      </a>
+      <% }) %>
+    </nav>
+
+    <!-- Results Info -->
+    <div class="menu-results-info" role="status">
+      <span>
+        <strong><%= items.length %></strong>
+        item<%= items.length !== 1 ? 's' : '' %> in
+        <strong><%= meta.label %></strong>
+      </span>
+      <% if (!user) { %>
+      <span class="login-hint">
+        <i class="fas fa-info-circle" aria-hidden="true"></i>
+        <a href="/auth/login">Login</a> to place orders
+      </span>
+      <% } %>
+    </div>
+
+    <!-- Items Grid -->
+    <% if (items.length === 0) { %>
+    <div class="empty-state" role="alert">
+      <i class="fas fa-utensils" aria-hidden="true"></i>
+      <h3>No items in this category yet</h3>
+      <p>Check back soon or browse our full menu.</p>
+      <a href="/menu" class="btn btn-primary">
+        <i class="fas fa-arrow-left" aria-hidden="true"></i> Full Menu
+      </a>
+    </div>
+    <% } else { %>
+    <div class="menu-grid" role="list">
+      <% const iconMap = {
+        'rice-meals':'fa-bowl-rice','swallow-meals':'fa-circle-dot',
+        'breakfast':'fa-sun','snacks':'fa-cookie-bite',
+        'drinks':'fa-glass-water','combo-offers':'fa-star'
+      }; %>
+      <% items.forEach(item => { %>
+      <article class="menu-card <%= !item.isAvailable ? 'menu-card-unavailable' : '' %>"
+               role="listitem" aria-label="<%= item.name %>">
+        <div class="menu-card-image">
+          <% if (item.image) { %>
+          <img src="<%= item.image %>" alt="<%= item.name %>" loading="lazy" />
+          <% } else { %>
+          <div class="menu-card-placeholder" aria-hidden="true">
+            <i class="fas <%= iconMap[item.category] || 'fa-utensils' %>"></i>
+          </div>
+          <% } %>
+          <div class="menu-card-badges">
+            <% if (item.isCombo)      { %><span class="badge-tag badge-combo"><i class="fas fa-star" aria-hidden="true"></i> Combo</span><% } %>
+            <% if (item.isFeatured)   { %><span class="badge-tag badge-featured">Popular</span><% } %>
+            <% if (!item.isAvailable) { %><span class="badge-tag badge-unavailable">Unavailable</span><% } %>
+          </div>
+        </div>
+        <div class="menu-card-body">
+          <div class="menu-card-category"><%= meta.label %></div>
+          <h3 class="menu-card-name"><%= item.name %></h3>
+          <% if (item.description) { %>
+          <p class="menu-card-desc">
+            <%= item.description.substring(0, 90) %><% if (item.description.length > 90) { %>&hellip;<% } %>
+          </p>
+          <% } %>
+          <% if (item.prepTime) { %>
+          <div class="menu-card-prep">
+            <i class="fas fa-clock" aria-hidden="true"></i> ~<%= item.prepTime %> mins
+          </div>
+          <% } %>
+          <% if (item.isCombo && item.comboItems?.length) { %>
+          <div class="combo-includes">
+            <i class="fas fa-layer-group" aria-hidden="true"></i>
+            <%= item.comboItems.join(' + ') %>
+          </div>
+          <% } %>
+          <div class="menu-card-footer">
+            <span class="menu-card-price">&#8358;<%= item.price.toLocaleString('en-NG') %></span>
+            <div class="menu-card-actions">
+              <a href="/menu/item/<%= item._id %>" class="btn-view-item"
+                 aria-label="View details for <%= item.name %>">
+                <i class="fas fa-eye" aria-hidden="true"></i>
+              </a>
+              <% if (item.isAvailable) { %>
+                <% if (user) { %>
+                <button class="btn-add-cart"
+                  data-item-id="<%= item._id %>"
+                  data-item-name="<%= item.name.replace(/"/g, '&quot;') %>"
+                  data-item-price="<%= item.price %>"
+                  data-has-options="<%= (item.customizationOptions?.length > 0).toString() %>"
+                  data-spice-options="<%= (item.spiceOptions !== false).toString() %>"
+                  data-options='<%= JSON.stringify(item.customizationOptions || []) %>'
+                  aria-label="Add <%= item.name %> to cart">
+                  <i class="fas fa-plus" aria-hidden="true"></i> Add
+                </button>
+                <% } else { %>
+                <a href="/auth/login?returnTo=/menu/category/<%= category %>"
+                   class="btn-add-cart" aria-label="Login to add to cart">
+                  <i class="fas fa-lock" aria-hidden="true"></i> Login
+                </a>
+                <% } %>
+              <% } else { %>
+              <span class="btn-unavailable">Unavailable</span>
+              <% } %>
+            </div>
+          </div>
+        </div>
+      </article>
+      <% }) %>
+    </div>
+    <% } %>
+
+  </div>
+</section>
+
+<%- include('../partials/footer') %>

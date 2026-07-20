@@ -1,0 +1,297 @@
+<%- include('partials/header') %>
+
+<!-- Hero Section -->
+<section class="hero" aria-label="Welcome to Taste Heaven">
+  <div class="hero-bg" aria-hidden="true">
+    <img src="/images/hero/hero-food.jpg" alt="Taste Heaven signature dish" class="hero-bg-img" />
+  </div>
+  <div class="hero-overlay" aria-hidden="true"></div>
+
+  <div class="container hero-wrapper">
+
+    <!-- Left: Text Content -->
+    <div class="hero-content">
+      <div class="hero-badge">
+        <i class="fas fa-award" aria-hidden="true"></i> Keffi&rsquo;s Favourite Restaurant
+      </div>
+      <h1 class="hero-title">
+        Great Food,
+        <span class="hero-accent">Great Taste,</span>
+        Every Time!
+      </h1>
+      <p class="hero-subtitle">
+        Authentic Nigerian meals made fresh daily &mdash; from smoky Jollof Rice to silky Pounded Yam.<br/>
+        Order online in minutes, delivered to your doorstep in Keffi.
+      </p>
+      <div class="hero-actions">
+        <a href="/menu" class="btn btn-hero-primary">
+          <i class="fas fa-utensils" aria-hidden="true"></i> Order Now
+        </a>
+        <a href="#featured" class="btn btn-hero-outline">
+          <i class="fas fa-eye" aria-hidden="true"></i> View Menu
+        </a>
+      </div>
+      <div class="hero-stats" role="list">
+        <div class="hero-stat" role="listitem">
+          <span class="hero-stat-num">22+</span>
+          <span class="hero-stat-label">Menu Items</span>
+        </div>
+        <div class="hero-stat-divider" aria-hidden="true"></div>
+        <div class="hero-stat" role="listitem">
+          <span class="hero-stat-num"><%= orderCount %>+</span>
+          <span class="hero-stat-label">Orders Served</span>
+        </div>
+        <div class="hero-stat-divider" aria-hidden="true"></div>
+        <div class="hero-stat" role="listitem">
+          <span class="hero-stat-num">5<i class="fas fa-star" style="font-size:0.7em;color:var(--gold)" aria-label="stars"></i></span>
+          <span class="hero-stat-label">Customer Rating</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Food Image — desktop/tablet only -->
+    <div class="hero-image-col" aria-hidden="true">
+      <div class="hero-food-card">
+        <img src="/images/hero/hero-dish.png"
+             alt="Taste Heaven signature dish"
+             class="hero-food-img" />
+        <div class="hero-food-badge">
+          <i class="fas fa-star" aria-hidden="true"></i>
+          <span>Best Seller</span>
+        </div>
+        <div class="hero-food-label">
+          <i class="fas fa-fire" aria-hidden="true"></i>
+          Your Favourite
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end hero-wrapper -->
+</section>
+
+<!-- Search Section -->
+<section class="search-section" aria-label="Quick search">
+  <div class="container">
+    <div class="search-hero-box" role="search">
+      <i class="fas fa-search" aria-hidden="true"></i>
+      <input type="search" id="heroSearchInput"
+        placeholder="Search jollof rice, pounded yam, chin chin&hellip;"
+        aria-label="Search menu items"
+        aria-controls="heroSearchResults"
+        autocomplete="off" />
+      <button id="heroSearchBtn" class="btn btn-primary" aria-label="Search">
+        <i class="fas fa-search" aria-hidden="true" style="color: white"></i> Search
+      </button>
+    </div>
+    <!-- Hero search results dropdown — independent from navbar search -->
+    <div id="heroSearchResults" class="hero-search-results" role="listbox" aria-label="Search results" style="display:none"></div>
+  </div>
+</section>
+
+<!-- Categories Section -->
+<section class="categories-section" id="categories" aria-labelledby="categoriesHeading">
+  <div class="container">
+    <div class="section-header">
+      <p class="section-eyebrow">What are you craving?</p>
+      <h2 class="section-title" id="categoriesHeading">Browse by Category</h2>
+    </div>
+    <div class="categories-grid" role="list">
+      <% const catIconMap = { 'rice-meals':'fa-bowl-rice','swallow-meals':'fa-circle-dot','breakfast':'fa-sun','snacks':'fa-cookie-bite','drinks':'fa-glass-water','combo-offers':'fa-star' }; %>
+      <% categories.forEach(cat => { %>
+      <a href="/menu/category/<%= cat._id %>" class="category-card" role="listitem" aria-label="<%= cat.label %>, <%= cat.availableCount %> available">
+        <div class="category-icon-wrap" aria-hidden="true">
+          <i class="fas <%= catIconMap[cat._id] || 'fa-utensils' %>"></i>
+        </div>
+        <h3 class="category-name"><%= cat.label %></h3>
+        <p class="category-count">
+          <span class="available-count"><%= cat.availableCount %> available</span>
+          <span class="total-count">/ <%= cat.count %> items</span>
+        </p>
+        <span class="category-arrow" aria-hidden="true"><i class="fas fa-arrow-right"></i></span>
+      </a>
+      <% }) %>
+    </div>
+  </div>
+</section>
+
+<!-- Featured Items -->
+<section class="featured-section" id="featured" aria-labelledby="featuredHeading">
+  <div class="container">
+    <div class="section-header">
+      <p class="section-eyebrow">Customer Favourites</p>
+      <h2 class="section-title" id="featuredHeading">Featured Meals</h2>
+      <a href="/menu" class="section-link">View All Menu <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+    </div>
+    <div class="menu-grid" role="list">
+      <% const iconMap = { 'rice-meals':'fa-bowl-rice','swallow-meals':'fa-circle-dot','breakfast':'fa-sun','snacks':'fa-cookie-bite','drinks':'fa-glass-water','combo-offers':'fa-star' }; %>
+      <% featuredItems.forEach(item => { %>
+      <article class="menu-card <%= !item.isAvailable ? 'menu-card-unavailable' : '' %>" role="listitem" aria-label="<%= item.name %>">
+        <div class="menu-card-image">
+          <% if (item.image) { %>
+          <img src="<%= item.image %>" alt="<%= item.name %>" loading="lazy" />
+          <% } else { %>
+          <div class="menu-card-placeholder" aria-hidden="true">
+            <i class="fas <%= iconMap[item.category] || 'fa-utensils' %>"></i>
+          </div>
+          <% } %>
+          <div class="menu-card-badges">
+            <% if (item.isCombo)     { %><span class="badge-tag badge-combo"><i class="fas fa-star" aria-hidden="true"></i> Combo</span><% } %>
+            <% if (!item.isAvailable){ %><span class="badge-tag badge-unavailable">Unavailable</span><% } %>
+          </div>
+        </div>
+        <div class="menu-card-body">
+          <div class="menu-card-category"><%= categoryLabels[item.category]?.label || item.category %></div>
+          <h3 class="menu-card-name"><%= item.name %></h3>
+          <% if (item.description) { %>
+          <p class="menu-card-desc"><%= item.description.substring(0,80) %><% if(item.description.length>80){ %>…<% } %></p>
+          <% } %>
+          <div class="menu-card-footer">
+            <span class="menu-card-price">&#8358;<%= item.price.toLocaleString('en-NG') %></span>
+            <% if (item.isAvailable) { %>
+            <% if (user) { %>
+            <button class="btn-add-cart"
+  data-item-id="<%= item._id %>"
+  data-item-name="<%= item.name.replace(/"/g,'&quot;') %>"
+  data-item-price="<%= item.price %>"
+  data-has-options="false"
+  data-spice-options="false"
+  data-options="[]"
+  aria-label="Add <%= item.name %> to cart">
+  <i class="fas fa-plus" aria-hidden="true"></i> Add
+</button>
+            <% } else { %>
+            <a href="/auth/login" class="btn-add-cart" aria-label="Login to order">
+              <i class="fas fa-lock" aria-hidden="true"></i> Login
+            </a>
+            <% } %>
+            <% } else { %>
+            <span class="btn-unavailable">Unavailable</span>
+            <% } %>
+          </div>
+        </div>
+      </article>
+      <% }) %>
+    </div>
+    <div class="section-cta">
+      <a href="/menu" class="btn btn-primary btn-lg">
+        <i class="fas fa-utensils" aria-hidden="true"></i> View Full Menu
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- How It Works -->
+<section class="how-it-works" aria-labelledby="howHeading">
+  <div class="container">
+    <div class="section-header">
+      <p class="section-eyebrow">Simple &amp; Fast</p>
+      <h2 class="section-title" id="howHeading">How to Order</h2>
+    </div>
+   <div class="steps-grid" aria-label="Order steps">
+  <div class="step-card">
+    <div class="step-number" aria-hidden="true">1</div>
+    <div class="step-icon" aria-hidden="true"><i class="fas fa-search"></i></div>
+    <h3>Browse Menu</h3>
+    <p>Explore our full menu of rice meals, swallows, breakfast, snacks and drinks.</p>
+  </div>
+  <div class="step-arrow" aria-hidden="true"><i class="fas fa-arrow-right"></i></div>
+  <div class="step-card">
+    <div class="step-number" aria-hidden="true">2</div>
+    <div class="step-icon" aria-hidden="true"><i class="fas fa-shopping-cart"></i></div>
+    <h3>Add to Cart</h3>
+    <p>Customise spice levels, add/remove ingredients, and set your preferences.</p>
+  </div>
+  <div class="step-arrow" aria-hidden="true"><i class="fas fa-arrow-right"></i></div>
+  <div class="step-card">
+    <div class="step-number" aria-hidden="true">3</div>
+    <div class="step-icon" aria-hidden="true"><i class="fas fa-clock"></i></div>
+    <h3>Schedule &amp; Pay</h3>
+    <p>Choose delivery or pickup time, location, and preferred payment method.</p>
+  </div>
+  <div class="step-arrow" aria-hidden="true"><i class="fas fa-arrow-right"></i></div>
+  <div class="step-card">
+    <div class="step-number" aria-hidden="true">4</div>
+    <div class="step-icon" aria-hidden="true"><i class="fab fa-whatsapp"></i></div>
+    <h3>Confirm on WhatsApp</h3>
+    <p>Your full order summary is sent to us on WhatsApp for quick confirmation.</p>
+  </div>
+</div>
+</section>
+
+<!-- Why Choose Us -->
+<section class="why-us-section" aria-labelledby="whyHeading">
+  <div class="container">
+    <div class="section-header light">
+      <p class="section-eyebrow">Why Choose Us?</p>
+      <h2 class="section-title" id="whyHeading">The Taste Heaven Difference</h2>
+    </div>
+    <div class="why-us-grid" role="list">
+      <% [
+        { icon:'fa-leaf',       title:'Fresh Ingredients',    text:'Every dish is cooked fresh with quality Nigerian ingredients — no compromises.'          },
+        { icon:'fa-bolt',       title:'Fast Service',          text:'We pride ourselves on quick preparation and delivery so your food arrives hot.'          },
+        { icon:'fa-sliders',    title:'Fully Customisable',    text:'Adjust spice levels, add extras, remove what you dislike — your meal, your way.'         },
+        { icon:'fa-wallet',     title:'Affordable Prices',     text:'Great tasting food that doesn\'t break the bank. Starting from just &#8358;500.'         },
+        { icon:'fab fa-whatsapp','title':'WhatsApp Ordering',  text:'Order and communicate with us directly on WhatsApp — quick, easy, familiar.'             },
+        { icon:'fa-shield-alt', title:'Secure Payments',       text:'Pay by cash, bank transfer, or secure card payment powered by Paystack.'                 },
+      ].forEach(w => { %>
+      <div class="why-card" role="listitem">
+        <div class="why-icon" aria-hidden="true"><i class="fas <%= w.icon %>"></i></div>
+        <h3><%= w.title %></h3>
+        <p><%- w.text %></p>
+      </div>
+      <% }) %>
+    </div>
+  </div>
+</section>
+
+<!-- Testimonials -->
+<% if (recentReviews && recentReviews.length > 0) { %>
+<section class="testimonials-section" aria-labelledby="reviewsHeading">
+  <div class="container">
+    <div class="section-header">
+      <p class="section-eyebrow">What Customers Say</p>
+      <h2 class="section-title" id="reviewsHeading">Customer Reviews</h2>
+    </div>
+    <div class="testimonials-grid" role="list">
+      <% recentReviews.slice(0,3).forEach(review => { %>
+      <article class="testimonial-card" role="listitem">
+        <div class="testimonial-stars" aria-label="<%= review.rating %> out of 5 stars">
+          <% for(let i=1;i<=5;i++) { %>
+          <i class="fas fa-star <%= i<=review.rating ? 'star-filled' : 'star-empty' %>" aria-hidden="true"></i>
+          <% } %>
+        </div>
+        <p class="testimonial-text">&ldquo;<%= review.comment || 'Great food and excellent service!' %>&rdquo;</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar" aria-hidden="true"><%= review.customer?.firstName?.charAt(0) || 'C' %></div>
+          <div>
+            <span class="testimonial-name"><%= review.customer?.firstName || 'Customer' %> <%= review.customer?.lastName?.charAt(0) || '' %>.</span>
+            <span class="testimonial-date"><%= new Date(review.createdAt).toLocaleDateString('en-NG',{month:'short',year:'numeric'}) %></span>
+          </div>
+        </div>
+      </article>
+      <% }) %>
+    </div>
+  </div>
+</section>
+<% } %>
+
+<!-- CTA -->
+<section class="cta-section" aria-label="Call to action">
+  <div class="container cta-content">
+    <div class="cta-text">
+      <h2>Ready to Order?</h2>
+      <p>Delicious meals are just a few clicks away. Start your order now!</p>
+    </div>
+    <div class="cta-actions">
+      <a href="/menu" class="btn btn-cta-primary"><i class="fas fa-utensils" aria-hidden="true"></i> Order Now</a>
+      <a href="https://wa.me/<%= whatsappNumber %>" target="_blank" rel="noopener noreferrer" class="btn btn-cta-whatsapp">
+        <i class="fab fa-whatsapp" aria-hidden="true"></i> Chat on WhatsApp
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Hero search bridges to global search via JS module -->
+<script type="application/json" id="thPageData">{ "page": "home" }</script>
+
+<%- include('partials/footer') %>

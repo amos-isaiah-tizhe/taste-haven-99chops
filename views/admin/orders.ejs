@@ -1,0 +1,179 @@
+<%- include('../partials/header') %>
+
+<section class="admin-page">
+  <div class="admin-sidebar"><%- include('./partials/sidebar') %></div>
+  <div class="admin-main">
+
+    <div class="admin-topbar">
+      <div>
+        <h1 class="admin-page-title">Order Management</h1>
+        <p class="admin-page-sub">Total: <strong><%= total %></strong> orders</p>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="admin-card" style="padding:14px 20px;margin-bottom:20px">
+      <form method="GET" action="/admin/orders" class="admin-filter-form">
+        <div class="admin-filter-row">
+          <div class="filter-group" style="flex:1">
+            <label for="filterSearch">Search Order #</label>
+            <input type="search" id="filterSearch" name="search" value="<%= search %>" placeholder="TH-&hellip;" class="form-control form-control-sm" />
+          </div>
+          <div class="filter-group">
+            <label for="filterStatus">Status</label>
+            <select id="filterStatus" name="status" class="form-control form-control-sm">
+              <option value="">All Statuses</option>
+              <% ['pending','confirmed','preparing','ready','out-for-delivery','delivered','cancelled'].forEach(s=>{ %>
+              <option value="<%= s %>" <%= status===s?'selected':'' %>><%= s.toUpperCase() %></option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="filterDate">Date</label>
+            <input type="date" id="filterDate" name="date" value="<%= date %>" class="form-control form-control-sm" />
+          </div>
+          <div class="filter-actions">
+            <button type="submit" class="btn btn-primary btn-sm">
+              <i class="fas fa-search" aria-hidden="true"></i> Filter
+            </button>
+            <a href="/admin/orders" class="btn btn-outline btn-sm">
+              <i class="fas fa-times" aria-hidden="true"></i> Clear
+            </a>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Orders Table -->
+    <div class="admin-card">
+      <% if (orders.length === 0) { %>
+      <div class="empty-state-sm"><i class="fas fa-inbox" aria-hidden="true"></i><p>No orders found.</p></div>
+      <% } else { %>
+      <div class="admin-table-wrap" role="region" aria-label="Orders list">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th scope="col">Order #</th>
+              <th scope="col">Customer</th>
+              <th scope="col">Items</th>
+              <th scope="col">Total</th>
+              <th scope="col">Type</th>
+              <th scope="col">Payment</th>
+              <th scope="col">Status</th>
+              <th scope="col">Scheduled</th>
+              <th scope="col">Date</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% orders.forEach(order => { %>
+            <tr id="order-row-<%= order._id %>">
+              <td><strong>#<%= order.orderNumber %></strong></td>
+              <td>
+                <div style="font-weight:600;font-size:0.88rem"><%= order.customer?.firstName %> <%= order.customer?.lastName %></div>
+                <a href="tel:<%= order.customer?.phone %>" style="font-size:0.78rem;color:var(--gray)"><%= order.customer?.phone %></a>
+              </td>
+              <td style="font-size:0.82rem;color:var(--gray)"><%= order.items?.length||0 %> item(s)</td>
+              <td><strong style="color:var(--red)">&#8358;<%= order.total.toLocaleString('en-NG') %></strong></td>
+              <td>
+                <span class="delivery-tag delivery-tag-<%= order.deliveryType %>">
+                  <i class="fas <%= order.deliveryType==='delivery'?'fa-motorcycle':'fa-store' %>" aria-hidden="true"></i>
+                  <%= order.deliveryType %>
+                </span>
+              </td>
+              <td>
+                <div style="font-size:0.78rem">
+                  <span class="status-badge status-payment-<%= order.paymentStatus %>"><%= order.paymentStatus %></span><br/>
+                  <span style="color:var(--gray)"><%= order.paymentMethod.toUpperCase() %></span>
+                </div>
+              </td>
+              <td>
+                <select class="status-select"
+                  data-order-id="<%= order._id %>"
+                  aria-label="Status for order #<%= order.orderNumber %>">
+                  <% ['pending','confirmed','preparing','ready','out-for-delivery','delivered','cancelled'].forEach(s=>{ %>
+                  <option value="<%= s %>" <%= order.status===s?'selected':'' %>><%= s.toUpperCase() %></option>
+                  <% }) %>
+                </select>
+              </td>
+              <td style="font-size:0.8rem;white-space:nowrap">
+                <time datetime="<%= order.scheduledTime %>">
+                  <% const st=new Date(order.scheduledTime); %>
+                  <%= st.toLocaleDateString('en-NG',{month:'short',day:'numeric'}) %><br/>
+                  <%= st.toLocaleTimeString('en-NG',{hour:'2-digit',minute:'2-digit'}) %>
+                </time>
+              </td>
+              <td style="font-size:0.78rem;color:var(--gray);white-space:nowrap">
+                <time datetime="<%= order.createdAt %>">
+                  <%= new Date(order.createdAt).toLocaleDateString('en-NG',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) %>
+                </time>
+              </td>
+              <td>
+                <div class="actions-cell">
+                  <a href="/admin/orders/<%= order._id %>" class="btn btn-sm btn-primary" aria-label="View order #<%= order.orderNumber %>">
+                    <i class="fas fa-eye" aria-hidden="true"></i>
+                  </a>
+                  <button class="btn btn-sm btn-outline"
+                    data-notify-order="<%= order._id %>"
+                    aria-label="Notify customer for #<%= order.orderNumber %>">
+                    <i class="fas fa-bell" aria-hidden="true"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+
+      <% if (totalPages > 1) { %>
+      <nav class="pagination" aria-label="Orders pagination">
+        <% if (currentPage>1) { %><a href="?page=<%= currentPage-1 %>&status=<%= status %>&date=<%= date %>&search=<%= search %>" class="page-btn" aria-label="Previous page"><i class="fas fa-chevron-left" aria-hidden="true"></i></a><% } %>
+        <% for(let i=Math.max(1,currentPage-2);i<=Math.min(totalPages,currentPage+2);i++){ %>
+        <a href="?page=<%= i %>&status=<%= status %>&date=<%= date %>&search=<%= search %>" class="page-btn <%= i===currentPage?'active':'' %>" aria-current="<%= i===currentPage?'page':'' %>"><%= i %></a>
+        <% } %>
+        <% if (currentPage<totalPages){ %><a href="?page=<%= currentPage+1 %>&status=<%= status %>&date=<%= date %>&search=<%= search %>" class="page-btn" aria-label="Next page"><i class="fas fa-chevron-right" aria-hidden="true"></i></a><% } %>
+        <span class="page-info">Page <%= currentPage %> of <%= totalPages %></span>
+      </nav>
+      <% } %>
+      <% } %>
+    </div>
+  </div>
+</section>
+
+<!-- Notify Modal -->
+<div class="modal-overlay" id="notifyModal" role="dialog" aria-modal="true" aria-labelledby="notifyModalTitle" hidden>
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="notifyModalTitle"><i class="fas fa-bell" aria-hidden="true"></i> Send Notification</h3>
+      <button id="notifyModalClose" class="modal-close" aria-label="Close"><i class="fas fa-times" aria-hidden="true"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label for="notifTitle">Title</label>
+        <input type="text" id="notifTitle" class="form-control" placeholder="Notification title&hellip;" />
+      </div>
+      <div class="form-group"><label for="notifMessage">Message</label>
+        <textarea id="notifMessage" rows="4" class="form-control" placeholder="Your message&hellip;"></textarea>
+      </div>
+      <div class="template-btns" role="group" aria-label="Message templates">
+        <button type="button" class="quick-time-btn" data-notif-template="Running slightly late||Your order is running slightly late. Thank you for your patience!">
+          <i class="fas fa-clock" aria-hidden="true"></i> Running late
+        </button>
+        <button type="button" class="quick-time-btn" data-notif-template="Payment reminder||Please complete your payment to proceed.">
+          <i class="fas fa-credit-card" aria-hidden="true"></i> Payment reminder
+        </button>
+        <button type="button" class="quick-time-btn" data-notif-template="Item out of stock||An item in your order is out of stock. We will contact you.">
+          <i class="fas fa-triangle-exclamation" aria-hidden="true"></i> Out of stock
+        </button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button id="notifyModalClose2" class="btn btn-outline">Cancel</button>
+      <button id="notifySendBtn" class="btn btn-primary">
+        <i class="fas fa-paper-plane" aria-hidden="true"></i> Send
+      </button>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

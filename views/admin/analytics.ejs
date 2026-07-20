@@ -1,0 +1,181 @@
+<%- include('../partials/header') %>
+
+<section class="admin-page">
+  <div class="admin-sidebar"><%- include('./partials/sidebar') %></div>
+  <div class="admin-main">
+
+    <div class="admin-topbar">
+      <div>
+        <h1 class="admin-page-title">Analytics &amp; Reports</h1>
+        <p class="admin-page-sub">Last 30 days performance overview</p>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <div class="admin-stat-card" style="padding:10px 16px;font-size:0.88rem;display:inline-flex;align-items:center;gap:8px">
+          <i class="fas fa-money-bill-wave" style="color:var(--green)" aria-hidden="true"></i>
+          <span>Total Revenue: <strong style="color:var(--green)">&#8358;<%= totalRevenue.toLocaleString('en-NG') %></strong></span>
+        </div>
+        <div class="admin-stat-card" style="padding:10px 16px;font-size:0.88rem;display:inline-flex;align-items:center;gap:8px">
+          <i class="fas fa-chart-line" style="color:var(--blue)" aria-hidden="true"></i>
+          <span>Avg Order: <strong style="color:var(--blue)">&#8358;<%= avgOrderValue.toLocaleString('en-NG') %></strong></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Grid -->
+    <div class="analytics-grid">
+
+      <!-- Revenue Chart -->
+      <div class="admin-card analytics-card-wide">
+        <div class="admin-card-header">
+          <h3><i class="fas fa-chart-area" aria-hidden="true"></i> Revenue &mdash; Last 30 Days</h3>
+        </div>
+        <canvas id="revenueChart" height="100" role="img" aria-label="Revenue chart for last 30 days"></canvas>
+      </div>
+
+      <!-- Orders by Status -->
+      <div class="admin-card">
+        <div class="admin-card-header"><h3><i class="fas fa-chart-pie" aria-hidden="true"></i> Orders by Status</h3></div>
+        <canvas id="statusChart" role="img" aria-label="Orders by status donut chart"></canvas>
+      </div>
+
+      <!-- Payment Methods -->
+      <div class="admin-card">
+        <div class="admin-card-header"><h3><i class="fas fa-wallet" aria-hidden="true"></i> Payment Methods</h3></div>
+        <canvas id="paymentChart" role="img" aria-label="Payment methods bar chart"></canvas>
+      </div>
+
+      <!-- Delivery vs Pickup -->
+      <div class="admin-card">
+        <div class="admin-card-header"><h3><i class="fas fa-motorcycle" aria-hidden="true"></i> Delivery vs Pickup</h3></div>
+        <canvas id="deliveryChart" role="img" aria-label="Delivery versus pickup donut chart"></canvas>
+      </div>
+
+      <!-- Top Items -->
+      <div class="admin-card analytics-card-wide">
+        <div class="admin-card-header"><h3><i class="fas fa-fire" aria-hidden="true"></i> Top 10 Most Ordered Items</h3></div>
+        <div class="top-items-list" role="list">
+          <% const topItemsParsed = JSON.parse(topItems || '[]'); %>
+          <% topItemsParsed.forEach((item, i) => { %>
+          <div class="top-item-row" role="listitem">
+            <span class="top-item-rank" aria-label="Rank <%= i+1 %>">#<%= i+1 %></span>
+            <span class="top-item-name"><%= item._id %></span>
+            <div class="top-item-bar-wrap" role="meter"
+              aria-valuenow="<%= topItemsParsed[0] ? Math.round((item.count/topItemsParsed[0].count)*100) : 0 %>"
+              aria-valuemin="0" aria-valuemax="100"
+              aria-label="<%= item.count %> orders">
+              <div class="top-item-bar" style="width:<%= topItemsParsed[0] ? Math.round((item.count/topItemsParsed[0].count)*100) : 0 %>%"></div>
+            </div>
+            <span class="top-item-count"><%= item.count %> orders</span>
+            <span class="top-item-revenue">&#8358;<%= item.revenue.toLocaleString('en-NG') %></span>
+          </div>
+          <% }) %>
+          <% if (topItemsParsed.length === 0) { %>
+          <div class="empty-state-sm"><i class="fas fa-chart-bar" aria-hidden="true"></i><p>No order data yet.</p></div>
+          <% } %>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Broadcast -->
+    <div class="admin-card">
+      <div class="admin-card-header"><h3><i class="fas fa-bullhorn" aria-hidden="true"></i> Broadcast Notification</h3></div>
+      <div style="max-width:560px">
+        <div class="form-group" style="margin-bottom:12px">
+          <label for="broadcastTarget">Target Audience</label>
+          <select id="broadcastTarget" class="form-control">
+            <option value="all">All Users</option>
+            <option value="customers">Customers Only</option>
+            <option value="admins">Admins Only</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:12px">
+          <label for="broadcastTitle">Title</label>
+          <input type="text" id="broadcastTitle" class="form-control" placeholder="e.g. Special Offer Today!" />
+        </div>
+        <div class="form-group" style="margin-bottom:16px">
+          <label for="broadcastMessage">Message</label>
+          <textarea id="broadcastMessage" rows="3" class="form-control" placeholder="Your broadcast message&hellip;"></textarea>
+        </div>
+        <button id="broadcastSendBtn" class="btn btn-primary">
+          <i class="fas fa-paper-plane" aria-hidden="true"></i> Send Broadcast
+        </button>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- Chart.js with nonce -->
+<script nonce="<%= nonce %>" src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<!-- Chart init module (nonce required) -->
+<script nonce="<%= nonce %>" type="module">
+// All chart data comes from embedded JSON — zero eval, CSP-safe
+const revenueData = <%- revenueByDay %>;
+const statusData  = <%- ordersByStatus %>;
+const paymentData = <%- ordersByPayment %>;
+const delivData   = <%- ordersByDelivery %>;
+
+const baseOpts = {
+  responsive: true,
+  plugins: { legend: { position: 'bottom', labels: { font: { size: 12 } } } },
+};
+
+// Revenue
+new Chart(document.getElementById('revenueChart'), {
+  type: 'line',
+  data: {
+    labels: revenueData.map(d => d._id),
+    datasets: [{
+      label: 'Revenue (₦)',
+      data:  revenueData.map(d => d.revenue),
+      borderColor: '#C41E1E',
+      backgroundColor: 'rgba(196,30,30,0.08)',
+      borderWidth: 2.5,
+      fill: true,
+      tension: 0.4,
+      pointBackgroundColor: '#C41E1E',
+      pointRadius: 4,
+    }],
+  },
+  options: {
+    ...baseOpts,
+    scales: {
+      y: { beginAtZero: true, ticks: { callback: v => '₦' + v.toLocaleString('en-NG') } },
+    },
+  },
+});
+
+// Status doughnut
+new Chart(document.getElementById('statusChart'), {
+  type: 'doughnut',
+  data: {
+    labels: statusData.map(d => d._id.toUpperCase()),
+    datasets: [{ data: statusData.map(d => d.count), backgroundColor: ['#F59E0B','#3B82F6','#F97316','#8B5CF6','#06B6D4','#22C55E','#EF4444'] }],
+  },
+  options: baseOpts,
+});
+
+// Payment bar
+new Chart(document.getElementById('paymentChart'), {
+  type: 'bar',
+  data: {
+    labels: paymentData.map(d => d._id.toUpperCase()),
+    datasets: [{ label: 'Orders', data: paymentData.map(d => d.count), backgroundColor: ['#C41E1E','#E6A817','#2563EB'] }],
+  },
+  options: { ...baseOpts, scales: { y: { beginAtZero: true } } },
+});
+
+// Delivery doughnut
+new Chart(document.getElementById('deliveryChart'), {
+  type: 'doughnut',
+  data: {
+    labels: delivData.map(d => d._id.toUpperCase()),
+    datasets: [{ data: delivData.map(d => d.count), backgroundColor: ['#3B82F6','#22C55E'] }],
+  },
+  options: baseOpts,
+});
+</script>
+
+<%- include('../partials/footer') %>

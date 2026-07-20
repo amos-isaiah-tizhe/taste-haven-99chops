@@ -1,0 +1,401 @@
+<%- include('../partials/header') %>
+
+<section class="page-hero page-hero-sm">
+  <div class="container">
+    <a href="/customer/orders"
+       style="color:rgba(255,255,255,0.7);font-size:0.9rem;display:inline-flex;align-items:center;gap:6px;margin-bottom:12px">
+      <i class="fas fa-arrow-left" aria-hidden="true"></i> Back to My Orders
+    </a>
+    <h1 class="page-hero-title">
+      <i class="fas fa-receipt" aria-hidden="true"></i> Order #<%= order.orderNumber %>
+    </h1>
+    <p class="page-hero-sub">
+      Placed on
+      <time datetime="<%= order.createdAt %>">
+        <%= new Date(order.createdAt).toLocaleDateString('en-NG', {
+          weekday:'long', year:'numeric', month:'long', day:'numeric',
+          hour:'2-digit', minute:'2-digit'
+        }) %>
+      </time>
+    </p>
+  </div>
+</section>
+
+<section style="padding:36px 0 60px">
+  <div class="container">
+    <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:28px;align-items:start">
+
+      <!-- Left Column -->
+      <div style="display:flex;flex-direction:column;gap:20px">
+
+        <!-- Order Status Timeline -->
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3><i class="fas fa-timeline" aria-hidden="true"></i> Order Status</h3>
+            <span class="status-badge status-<%= order.status %>">
+              <%= order.status.toUpperCase() %>
+            </span>
+          </div>
+
+          <%
+            const allStatuses = ['pending','confirmed','preparing','ready',
+              order.deliveryType === 'delivery' ? 'out-for-delivery' : null,
+              'delivered'].filter(Boolean);
+            const currentIdx = allStatuses.indexOf(order.status);
+            const statusLabels = {
+              'pending':          'Order Placed',
+              'confirmed':        'Confirmed',
+              'preparing':        'Preparing',
+              'ready':            'Ready',
+              'out-for-delivery': 'On the Way',
+              'delivered':        'Delivered',
+            };
+            const statusIcons = {
+              'pending':          'fa-clock',
+              'confirmed':        'fa-check-circle',
+              'preparing':        'fa-kitchen-set',
+              'ready':            'fa-plate-wheat',
+              'out-for-delivery': 'fa-motorcycle',
+              'delivered':        'fa-circle-check',
+            };
+          %>
+
+          <div class="tracking-timeline" style="padding:20px 0"
+               role="list" aria-label="Order status timeline">
+            <% allStatuses.forEach((s, i) => { %>
+            <div class="track-step
+                         <%= i <= currentIdx ? 'track-done' : '' %>
+                         <%= i === currentIdx ? 'track-current' : '' %>"
+                 role="listitem"
+                 aria-current="<%= i === currentIdx ? 'step' : '' %>">
+              <div class="track-dot" aria-hidden="true">
+                <% if (i < currentIdx) { %>
+                  <i class="fas fa-check"></i>
+                <% } else if (i === currentIdx) { %>
+                  <i class="fas fa-circle-notch fa-spin"></i>
+                <% } else { %>
+                  <i class="fas <%= statusIcons[s] || 'fa-circle' %>"></i>
+                <% } %>
+              </div>
+              <span class="track-label"><%= statusLabels[s] || s %></span>
+            </div>
+            <% if (i < allStatuses.length - 1) { %>
+            <div class="track-line <%= i < currentIdx ? 'track-line-done' : '' %>"
+                 aria-hidden="true"></div>
+            <% } %>
+            <% }) %>
+          </div>
+
+          <% if (order.status === 'cancelled') { %>
+          <div style="background:#FEE2E2;color:#991B1B;padding:12px 16px;border-radius:var(--radius-sm);margin:0 20px 16px">
+            <i class="fas fa-times-circle" aria-hidden="true"></i>
+            <strong>Order Cancelled</strong>
+            <% if (order.cancelReason) { %>
+            <p style="margin-top:4px;font-size:0.88rem"><%= order.cancelReason %></p>
+            <% } %>
+          </div>
+          <% } %>
+
+          <!-- Status History -->
+          <% if (order.statusHistory && order.statusHistory.length > 0) { %>
+          <div style="padding:0 20px 20px">
+            <h4 style="font-size:0.85rem;font-weight:700;color:var(--gray);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.05em">
+              Activity Log
+            </h4>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <% order.statusHistory.slice().reverse().forEach(h => { %>
+              <div style="display:flex;align-items:flex-start;gap:10px;font-size:0.85rem">
+                <div style="width:8px;height:8px;border-radius:50%;background:var(--red);margin-top:5px;flex-shrink:0"></div>
+                <div>
+                  <strong><%= h.status.toUpperCase() %></strong>
+                  <% if (h.message) { %> — <%= h.message %><% } %>
+                  <div style="color:var(--gray-2);font-size:0.78rem;margin-top:2px">
+                    <time datetime="<%= h.timestamp %>">
+                      <%= new Date(h.timestamp).toLocaleString('en-NG', {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) %>
+                    </time>
+                  </div>
+                </div>
+              </div>
+              <% }) %>
+            </div>
+          </div>
+          <% } %>
+        </div>
+
+        <!-- Order Items -->
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3><i class="fas fa-utensils" aria-hidden="true"></i> Items Ordered</h3>
+            <span style="font-size:0.85rem;color:var(--gray)">
+              <%= order.items.length %> item<%= order.items.length !== 1 ? 's' : '' %>
+            </span>
+          </div>
+          <div style="padding:8px 0" role="list">
+            <% order.items.forEach(item => { %>
+            <div class="checkout-item" role="listitem" style="padding:14px 20px">
+              <div class="checkout-item-icon" aria-hidden="true">
+                <i class="fas fa-utensils"></i>
+              </div>
+              <div class="checkout-item-details">
+                <span class="checkout-item-name"><%= item.name %></span>
+                <div class="checkout-item-meta">
+                  <% if (item.spiceLevel && item.spiceLevel !== 'medium') { %>
+                  <span class="meta-tag">
+                    <i class="fas fa-pepper-hot" aria-hidden="true"></i> <%= item.spiceLevel %>
+                  </span>
+                  <% } %>
+                  <% if (item.extraSpices && item.extraSpices.length > 0) { %>
+                  <span class="meta-tag">
+                    <i class="fas fa-plus-circle" aria-hidden="true"></i> Extra: <%= item.extraSpices.join(', ') %>
+                  </span>
+                  <% } %>
+                  <% if (item.removeItems && item.removeItems.length > 0) { %>
+                  <span class="meta-tag">
+                    <i class="fas fa-minus-circle" aria-hidden="true"></i> No: <%= item.removeItems.join(', ') %>
+                  </span>
+                  <% } %>
+                  <% if (item.addItems && item.addItems.length > 0) { %>
+                  <span class="meta-tag">
+                    <i class="fas fa-check-circle" aria-hidden="true"></i> Add: <%= item.addItems.join(', ') %>
+                  </span>
+                  <% } %>
+                  <% if (item.specialInstructions) { %>
+                  <span class="meta-tag">
+                    <i class="fas fa-comment" aria-hidden="true"></i> <%= item.specialInstructions %>
+                  </span>
+                  <% } %>
+                </div>
+                <div style="font-size:0.82rem;color:var(--gray);margin-top:4px">
+                  &#8358;<%= item.price.toLocaleString('en-NG') %> &times; <%= item.quantity %>
+                </div>
+              </div>
+              <div class="checkout-item-qty">x<%= item.quantity %></div>
+              <div class="checkout-item-price">
+                &#8358;<%= item.subtotal.toLocaleString('en-NG') %>
+              </div>
+            </div>
+            <% }) %>
+          </div>
+
+          <!-- Totals -->
+          <div style="padding:16px 20px;border-top:2px solid var(--gray-light)">
+            <div class="summary-line">
+              <span>Subtotal</span>
+              <span>&#8358;<%= order.subtotal.toLocaleString('en-NG') %></span>
+            </div>
+            <% if (order.deliveryFee > 0) { %>
+            <div class="summary-line">
+              <span>Delivery Fee</span>
+              <span>&#8358;<%= order.deliveryFee.toLocaleString('en-NG') %></span>
+            </div>
+            <% } %>
+            <% if (order.discount > 0) { %>
+            <div class="summary-line" style="color:var(--green)">
+              <span>Discount</span>
+              <span>- &#8358;<%= order.discount.toLocaleString('en-NG') %></span>
+            </div>
+            <% } %>
+            <div class="summary-divider"></div>
+            <div class="summary-line summary-total">
+              <span>Total</span>
+              <span style="color:var(--red)">&#8358;<%= order.total.toLocaleString('en-NG') %></span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Column -->
+      <div style="display:flex;flex-direction:column;gap:20px">
+
+        <!-- Delivery Info -->
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3>
+              <i class="fas <%= order.deliveryType === 'delivery' ? 'fa-motorcycle' : 'fa-store' %>"
+                 aria-hidden="true"></i>
+              <%= order.deliveryType === 'delivery' ? 'Delivery Info' : 'Pickup Info' %>
+            </h3>
+          </div>
+          <div style="padding:16px 20px;display:flex;flex-direction:column;gap:12px">
+            <% if (order.deliveryType === 'delivery') { %>
+            <div style="display:flex;gap:10px;align-items:flex-start;font-size:0.88rem">
+              <i class="fas fa-map-marker-alt" style="color:var(--red);margin-top:2px" aria-hidden="true"></i>
+              <div>
+                <strong>Delivery Address</strong>
+                <p style="color:var(--gray);margin-top:3px"><%= order.deliveryAddress || 'Not specified' %></p>
+                <% if (order.deliveryLandmark) { %>
+                <p style="color:var(--gray-2);font-size:0.8rem;margin-top:2px">
+                  <i class="fas fa-landmark" aria-hidden="true"></i> <%= order.deliveryLandmark %>
+                </p>
+                <% } %>
+              </div>
+            </div>
+            <% } else { %>
+            <div style="display:flex;gap:10px;align-items:flex-start;font-size:0.88rem">
+              <i class="fas fa-store" style="color:var(--red);margin-top:2px" aria-hidden="true"></i>
+              <div>
+                <strong>Pickup Location</strong>
+                <p style="color:var(--gray);margin-top:3px">
+                  Low-cost, behind youth center, Keffi, Nasarawa State
+                </p>
+              </div>
+            </div>
+            <% } %>
+
+            <div style="display:flex;gap:10px;align-items:flex-start;font-size:0.88rem">
+              <i class="fas fa-clock" style="color:var(--red);margin-top:2px" aria-hidden="true"></i>
+              <div>
+                <strong>Scheduled Time</strong>
+                <time datetime="<%= order.scheduledTime %>"
+                      style="display:block;color:var(--gray);margin-top:3px">
+                  <%= new Date(order.scheduledTime).toLocaleString('en-NG', {
+                    weekday:'short', month:'short', day:'numeric',
+                    hour:'2-digit', minute:'2-digit'
+                  }) %>
+                </time>
+              </div>
+            </div>
+
+            <% if (order.specialInstructions) { %>
+            <div style="display:flex;gap:10px;align-items:flex-start;font-size:0.88rem">
+              <i class="fas fa-comment" style="color:var(--red);margin-top:2px" aria-hidden="true"></i>
+              <div>
+                <strong>Special Instructions</strong>
+                <p style="color:var(--gray);margin-top:3px"><%= order.specialInstructions %></p>
+              </div>
+            </div>
+            <% } %>
+          </div>
+        </div>
+
+        <!-- Payment Info -->
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3><i class="fas fa-wallet" aria-hidden="true"></i> Payment</h3>
+            <span class="status-badge status-payment-<%= order.paymentStatus %>">
+              <%= order.paymentStatus.toUpperCase() %>
+            </span>
+          </div>
+          <div style="padding:16px 20px;display:flex;flex-direction:column;gap:10px;font-size:0.88rem">
+            <div style="display:flex;justify-content:space-between">
+              <span style="color:var(--gray)">Method</span>
+              <strong>
+                <i class="fas <%= order.paymentMethod === 'cash' ? 'fa-money-bills' : order.paymentMethod === 'transfer' ? 'fa-university' : 'fa-credit-card' %>"
+                   aria-hidden="true"></i>
+                <%= order.paymentMethod === 'cash' ? 'Cash' : order.paymentMethod === 'transfer' ? 'Bank Transfer' : 'Card (Paystack)' %>
+              </strong>
+            </div>
+            <div style="display:flex;justify-content:space-between">
+              <span style="color:var(--gray)">Status</span>
+              <strong style="color:<%= order.paymentStatus === 'paid' ? 'var(--green)' : order.paymentStatus === 'failed' ? 'var(--red)' : 'var(--gold)' %>">
+                <%= order.paymentStatus.toUpperCase() %>
+              </strong>
+            </div>
+            <% if (order.paystackReference) { %>
+            <div style="display:flex;justify-content:space-between">
+              <span style="color:var(--gray)">Reference</span>
+              <code style="font-size:0.78rem"><%= order.paystackReference %></code>
+            </div>
+            <% } %>
+            <div style="display:flex;justify-content:space-between;padding-top:8px;border-top:1px solid var(--gray-light)">
+              <span style="font-weight:700">Total Paid</span>
+              <strong style="color:var(--red);font-size:1.1rem">
+                &#8358;<%= order.total.toLocaleString('en-NG') %>
+              </strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3><i class="fas fa-bolt" aria-hidden="true"></i> Actions</h3>
+          </div>
+          <div style="padding:16px 20px;display:flex;flex-direction:column;gap:10px">
+
+            <!-- WhatsApp -->
+            <a href="<%= whatsappUrl %>" target="_blank" rel="noopener noreferrer"
+               class="btn btn-whatsapp btn-full">
+              <i class="fab fa-whatsapp" aria-hidden="true"></i> Contact Us on WhatsApp
+            </a>
+
+            <!-- Rate order if delivered -->
+            <% if (order.status === 'delivered' && !order.rating?.score) { %>
+            <button class="btn btn-gold btn-full" data-rate-order="<%= order._id %>">
+              <i class="fas fa-star" aria-hidden="true"></i> Rate This Order
+            </button>
+            <% } %>
+
+            <!-- Show rating if already rated -->
+            <% if (order.rating && order.rating.score) { %>
+            <div style="background:var(--gold-light);border-radius:var(--radius-sm);padding:12px 16px;text-align:center">
+              <div style="display:flex;justify-content:center;gap:4px;margin-bottom:6px">
+                <% for(let i=1;i<=5;i++) { %>
+                <i class="fas fa-star <%= i <= order.rating.score ? 'star-filled' : 'star-empty' %>"
+                   aria-hidden="true"></i>
+                <% } %>
+              </div>
+              <p style="font-size:0.85rem;color:var(--gray)">
+                <%= order.rating.comment || 'You rated this order' %>
+              </p>
+            </div>
+            <% } %>
+
+            <a href="/customer/orders" class="btn btn-outline btn-full">
+              <i class="fas fa-list" aria-hidden="true"></i> Back to All Orders
+            </a>
+
+            <a href="/menu" class="btn btn-primary btn-full">
+              <i class="fas fa-utensils" aria-hidden="true"></i> Order Again
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Rating Modal -->
+<div class="modal-overlay" id="rateModal" role="dialog" aria-modal="true"
+     aria-labelledby="rateModalTitle" style="display:none">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <h3 id="rateModalTitle">
+        <i class="fas fa-star" aria-hidden="true"></i> Rate Your Order
+      </h3>
+      <button id="rateModalClose" class="modal-close" aria-label="Close rating dialog">
+        <i class="fas fa-times" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p style="color:var(--gray);margin-bottom:16px">
+        How was your experience with order #<%= order.orderNumber %>?
+      </p>
+      <div class="star-rating-row" role="group" aria-label="Star rating">
+        <% for(let i=1; i<=5; i++) { %>
+        <button type="button" class="star-input" data-val="<%= i %>"
+          aria-label="<%= i %> star<%= i > 1 ? 's' : '' %>" aria-pressed="false">
+          <i class="far fa-star" aria-hidden="true"></i>
+        </button>
+        <% } %>
+      </div>
+      <div class="form-group" style="margin-top:16px">
+        <label for="ratingComment">
+          Comment <span style="color:var(--gray);font-weight:400">(optional)</span>
+        </label>
+        <textarea id="ratingComment" rows="3" class="form-control"
+          placeholder="Tell us what you loved or how we can improve&hellip;"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button id="rateModalClose2" class="btn btn-outline">Cancel</button>
+      <button id="rateSubmitBtn" class="btn btn-primary">
+        <i class="fas fa-paper-plane" aria-hidden="true"></i> Submit Rating
+      </button>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

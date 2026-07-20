@@ -1,0 +1,29 @@
+<%- include('../partials/header') %>
+
+<section style="min-height:70vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:60px 20px">
+  <div>
+    <div style="font-size:5rem;margin-bottom:16px;color:var(--gold)">
+  <i class="fas fa-triangle-exclamation" aria-hidden="true"></i>
+</div>
+    <h1 style="font-family:var(--font-display);font-size:5rem;font-weight:800;color:var(--red);line-height:1">500</h1>
+    <h2 style="font-size:1.5rem;font-weight:700;margin-bottom:12px">Server Error</h2>
+    <p style="color:var(--gray);font-size:1rem;margin-bottom:16px;max-width:420px;margin-left:auto;margin-right:auto">
+      Something went wrong on our end. Please try again in a moment.
+    </p>
+    <% if (typeof message !== 'undefined' && message) { %>
+    <p style="font-size:0.85rem;color:var(--gray-2);margin-bottom:28px;font-family:monospace;background:var(--bg);padding:10px 16px;border-radius:8px;display:inline-block">
+      <%= message %>
+    </p>
+    <% } %>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <a href="/" class="btn btn-primary"><i class="fas fa-home"></i> Back to Home</a>
+      <a href="javascript:history.back()" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Go Back</a>
+    </div>
+    <p style="margin-top:24px;font-size:0.85rem;color:var(--gray)">
+      <i class="fab fa-whatsapp" style="color:#25D366"></i>
+      Need help? <a href="https://wa.me/<%= whatsappNumber %>" target="_blank" style="color:var(--red)">Chat with us on WhatsApp</a>
+    </p>
+  </div>
+</section>
+
+<%- include('../partials/footer') %>

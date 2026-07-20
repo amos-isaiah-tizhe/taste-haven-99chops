@@ -1,0 +1,141 @@
+<%- include('../partials/header') %>
+
+<section class="page-hero page-hero-sm">
+  <div class="container">
+    <a href="/menu" style="color:rgba(255,255,255,0.7);font-size:0.9rem;display:inline-flex;align-items:center;gap:6px;margin-bottom:12px">
+      <i class="fas fa-arrow-left" aria-hidden="true"></i> Back to Menu
+    </a>
+    <h1 class="page-hero-title"><%= item.name %></h1>
+  </div>
+</section>
+
+<section style="padding:40px 0 60px">
+  <div class="container">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start">
+
+      <!-- Image -->
+      <div>
+        <% if (item.image) { %>
+        <img src="<%= item.image %>" alt="<%= item.name %>"
+             style="width:100%;border-radius:var(--radius-lg);box-shadow:var(--shadow-lg)" />
+        <% } else { %>
+        <div style="width:100%;aspect-ratio:4/3;border-radius:var(--radius-lg);
+                    background:linear-gradient(135deg,#FFF9F0,#FFF0F0);
+                    display:flex;align-items:center;justify-content:center;font-size:8rem;
+                    box-shadow:var(--shadow)">
+          <i class="fas <%=
+            item.category==='rice-meals'?'fa-bowl-rice':
+            item.category==='swallow-meals'?'fa-circle-dot':
+            item.category==='breakfast'?'fa-sun':
+            item.category==='snacks'?'fa-cookie-bite':
+            item.category==='drinks'?'fa-glass-water':'fa-star'
+          %>" aria-hidden="true" style="color:var(--red);opacity:0.4"></i>
+        </div>
+        <% } %>
+      </div>
+
+      <!-- Details -->
+      <div>
+        <div style="font-size:0.8rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--gold);font-weight:700;margin-bottom:8px">
+          <%= item.category.replace(/-/g,' ') %>
+        </div>
+        <h1 style="font-family:var(--font-display);font-size:2rem;font-weight:700;margin-bottom:12px">
+          <%= item.name %>
+        </h1>
+
+        <% if (item.description) { %>
+        <p style="color:var(--gray);line-height:1.7;margin-bottom:20px"><%= item.description %></p>
+        <% } %>
+
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px">
+          <span style="font-size:2rem;font-weight:800;color:var(--red);font-family:var(--font-accent)">
+            &#8358;<%= item.price.toLocaleString('en-NG') %>
+          </span>
+          <% if (item.prepTime) { %>
+          <span style="font-size:0.85rem;color:var(--gray);display:flex;align-items:center;gap:6px">
+            <i class="fas fa-clock" aria-hidden="true"></i> ~<%= item.prepTime %> mins prep
+          </span>
+          <% } %>
+        </div>
+
+        <% if (!item.isAvailable) { %>
+        <div style="background:#FEE2E2;color:#991B1B;padding:12px 16px;border-radius:var(--radius-sm);margin-bottom:20px;font-weight:600">
+          <i class="fas fa-times-circle" aria-hidden="true"></i> Currently Unavailable
+        </div>
+        <% } %>
+
+        <% if (item.isCombo && item.comboItems?.length) { %>
+        <div style="background:var(--gold-light);border-radius:var(--radius);padding:16px;margin-bottom:20px">
+          <strong><i class="fas fa-star" aria-hidden="true" style="color:var(--gold)"></i> Combo Includes:</strong>
+          <ul style="margin-top:8px;padding-left:20px">
+            <% item.comboItems.forEach(ci => { %>
+            <li style="margin-bottom:4px;color:var(--charcoal)"><%= ci %></li>
+            <% }) %>
+          </ul>
+        </div>
+        <% } %>
+
+        <% if (item.isAvailable) { %>
+          <% if (user) { %>
+          <button class="btn btn-primary btn-lg btn-full"
+            data-item-id="<%= item._id %>"
+            data-item-name="<%= item.name.replace(/"/g,'&quot;') %>"
+            data-item-price="<%= item.price %>"
+            data-has-options="<%= (item.customizationOptions?.length > 0).toString() %>"
+            data-spice-options="<%= (item.spiceOptions !== false).toString() %>"
+            data-options="<%= JSON.stringify(item.customizationOptions || []).replace(/"/g,'&quot;') %>"
+            style="margin-bottom:12px">
+            <i class="fas fa-cart-plus" aria-hidden="true"></i> Add to Cart
+          </button>
+          <% } else { %>
+          <a href="/auth/login?returnTo=/menu/item/<%= item._id %>"
+             class="btn btn-primary btn-lg btn-full" style="margin-bottom:12px">
+            <i class="fas fa-lock" aria-hidden="true"></i> Login to Order
+          </a>
+          <% } %>
+        <% } %>
+
+        <a href="/menu" class="btn btn-outline btn-full">
+          <i class="fas fa-arrow-left" aria-hidden="true"></i> Back to Menu
+        </a>
+      </div>
+    </div>
+
+    <!-- Related Items -->
+    <% if (related && related.length > 0) { %>
+    <div style="margin-top:60px">
+      <h2 style="font-family:var(--font-display);font-size:1.8rem;font-weight:700;margin-bottom:24px">
+        More from this category
+      </h2>
+      <div class="menu-grid">
+        <% const iconMap = {'rice-meals':'fa-bowl-rice','swallow-meals':'fa-circle-dot','breakfast':'fa-sun','snacks':'fa-cookie-bite','drinks':'fa-glass-water','combo-offers':'fa-star'}; %>
+        <% related.forEach(rel => { %>
+        <article class="menu-card">
+          <div class="menu-card-image">
+            <% if (rel.image) { %>
+            <img src="<%= rel.image %>" alt="<%= rel.name %>" loading="lazy" />
+            <% } else { %>
+            <div class="menu-card-placeholder" aria-hidden="true">
+              <i class="fas <%= iconMap[rel.category] || 'fa-utensils' %>"></i>
+            </div>
+            <% } %>
+          </div>
+          <div class="menu-card-body">
+            <h3 class="menu-card-name"><%= rel.name %></h3>
+            <div class="menu-card-footer">
+              <span class="menu-card-price">&#8358;<%= rel.price.toLocaleString('en-NG') %></span>
+              <a href="/menu/item/<%= rel._id %>" class="btn-view-item">
+                <i class="fas fa-eye" aria-hidden="true"></i>
+              </a>
+            </div>
+          </div>
+        </article>
+        <% }) %>
+      </div>
+    </div>
+    <% } %>
+  </div>
+</section>
+
+
+<%- include('../partials/footer') %>

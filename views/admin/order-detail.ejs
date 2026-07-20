@@ -1,0 +1,242 @@
+<%- include('../partials/header') %>
+
+<section class="admin-page">
+  <div class="admin-sidebar"><%- include('./partials/sidebar') %></div>
+  <div class="admin-main">
+
+    <div class="admin-topbar">
+      <div>
+        <a href="/admin/orders" style="color:var(--gray);font-size:0.88rem;display:inline-flex;align-items:center;gap:6px;margin-bottom:8px">
+          <i class="fas fa-arrow-left" aria-hidden="true"></i> Back to Orders
+        </a>
+        <h1 class="admin-page-title">Order #<%= order.orderNumber %></h1>
+        <p class="admin-page-sub">
+          Placed <time datetime="<%= order.createdAt %>">
+            <%= new Date(order.createdAt).toLocaleString('en-NG', { weekday:'long', year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit' }) %>
+          </time>
+        </p>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <span class="status-badge status-<%= order.status %>"><%= order.status.toUpperCase() %></span>
+        <span class="status-badge status-payment-<%= order.paymentStatus %>"><%= order.paymentStatus.toUpperCase() %></span>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:20px;align-items:start">
+
+      <!-- Left Column -->
+      <div>
+
+        <!-- Order Items -->
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3><i class="fas fa-utensils" aria-hidden="true"></i> Items Ordered</h3>
+            <span style="font-size:0.85rem;color:var(--gray)"><%= order.items.length %> item(s)</span>
+          </div>
+          <div role="list">
+            <% order.items.forEach(item => { %>
+            <div class="checkout-item" role="listitem" style="padding:14px 0;border-bottom:1px solid var(--gray-light)">
+              <div class="checkout-item-icon" aria-hidden="true">
+                <i class="fas fa-utensils"></i>
+              </div>
+              <div class="checkout-item-details">
+                <span class="checkout-item-name"><%= item.name %></span>
+                <div class="checkout-item-meta">
+                  <% if (item.spiceLevel && item.spiceLevel !== 'medium') { %>
+                  <span class="meta-tag"><i class="fas fa-pepper-hot" aria-hidden="true"></i> <%= item.spiceLevel %></span>
+                  <% } %>
+                  <% if (item.extraSpices?.length) { %>
+                  <span class="meta-tag"><i class="fas fa-plus-circle" aria-hidden="true"></i> Extra: <%= item.extraSpices.join(', ') %></span>
+                  <% } %>
+                  <% if (item.removeItems?.length) { %>
+                  <span class="meta-tag"><i class="fas fa-minus-circle" aria-hidden="true"></i> Remove: <%= item.removeItems.join(', ') %></span>
+                  <% } %>
+                  <% if (item.specialInstructions) { %>
+                  <span class="meta-tag"><i class="fas fa-comment" aria-hidden="true"></i> <%= item.specialInstructions %></span>
+                  <% } %>
+                </div>
+                <div style="font-size:0.82rem;color:var(--gray);margin-top:4px">
+                  &#8358;<%= item.price.toLocaleString('en-NG') %> &times; <%= item.quantity %>
+                </div>
+              </div>
+              <div class="checkout-item-qty">x<%= item.quantity %></div>
+              <div class="checkout-item-price">&#8358;<%= item.subtotal.toLocaleString('en-NG') %></div>
+            </div>
+            <% }) %>
+          </div>
+
+          <!-- Totals -->
+          <div style="padding:16px 0 0">
+            <div class="summary-line">
+              <span>Subtotal</span>
+              <span>&#8358;<%= order.subtotal.toLocaleString('en-NG') %></span>
+            </div>
+            <% if (order.deliveryFee > 0) { %>
+            <div class="summary-line">
+              <span>Delivery Fee</span>
+              <span>&#8358;<%= order.deliveryFee.toLocaleString('en-NG') %></span>
+            </div>
+            <% } %>
+            <div class="summary-divider"></div>
+            <div class="summary-line summary-total">
+              <span>Total</span>
+              <span style="color:var(--red)">&#8358;<%= order.total.toLocaleString('en-NG') %></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Status History -->
+        <% if (order.statusHistory && order.statusHistory.length > 0) { %>
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3><i class="fas fa-clock-rotate-left" aria-hidden="true"></i> Status History</h3>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <% order.statusHistory.slice().reverse().forEach(h => { %>
+            <div style="display:flex;align-items:flex-start;gap:12px;font-size:0.88rem">
+              <div style="width:10px;height:10px;border-radius:50%;background:var(--red);margin-top:4px;flex-shrink:0"></div>
+              <div>
+                <strong><%= h.status.toUpperCase() %></strong>
+                <% if (h.message) { %> — <%= h.message %><% } %>
+                <div style="font-size:0.78rem;color:var(--gray-2);margin-top:2px">
+                  <time datetime="<%= h.timestamp %>">
+                    <%= new Date(h.timestamp).toLocaleString('en-NG', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) %>
+                  </time>
+                </div>
+              </div>
+            </div>
+            <% }) %>
+          </div>
+        </div>
+        <% } %>
+
+      </div>
+
+      <!-- Right Column -->
+      <div style="display:flex;flex-direction:column;gap:20px">
+
+        <!-- Update Status -->
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3><i class="fas fa-pen-to-square" aria-hidden="true"></i> Update Status</h3>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div class="form-group">
+              <label for="statusSelect">Order Status</label>
+              <select id="statusSelect" class="form-control status-select"
+                data-order-id="<%= order._id %>">
+                <% ['pending','confirmed','preparing','ready','out-for-delivery','delivered','cancelled'].forEach(s => { %>
+                <option value="<%= s %>" <%= order.status === s ? 'selected' : '' %>><%= s.toUpperCase().replace(/-/g,' ') %></option>
+                <% }) %>
+              </select>
+            </div>
+            <button id="updateStatusBtn" class="btn btn-primary btn-full"
+              data-order-id="<%= order._id %>">
+              <i class="fas fa-check" aria-hidden="true"></i> Update Status
+            </button>
+          </div>
+        </div>
+
+        <!-- Customer Info -->
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3><i class="fas fa-user" aria-hidden="true"></i> Customer</h3>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px;font-size:0.88rem">
+            <% if (order.customer) { %>
+            <div style="display:flex;gap:10px;align-items:center">
+              <div class="user-avatar-small" aria-hidden="true">
+                <%= (order.customer.firstName || 'C').charAt(0) %><%= (order.customer.lastName || '').charAt(0) %>
+              </div>
+              <div>
+                <div style="font-weight:600"><%= order.customer.firstName %> <%= order.customer.lastName %></div>
+                <div style="color:var(--gray)"><%= order.customer.email %></div>
+                <div style="color:var(--gray)"><%= order.customer.phone || 'No phone' %></div>
+              </div>
+            </div>
+            <% } %>
+            <a href="https://wa.me/<%= whatsappNumber %>?text=Hello%20<%= encodeURIComponent((order.customer?.firstName || 'Customer')) %>%2C%20regarding%20your%20order%20%23<%= order.orderNumber %>"
+               target="_blank" rel="noopener noreferrer" class="btn btn-whatsapp btn-full">
+              <i class="fab fa-whatsapp" aria-hidden="true"></i> Message Customer
+            </a>
+          </div>
+        </div>
+
+        <!-- Delivery Info -->
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3>
+              <i class="fas <%= order.deliveryType === 'delivery' ? 'fa-motorcycle' : 'fa-store' %>" aria-hidden="true"></i>
+              <%= order.deliveryType === 'delivery' ? 'Delivery' : 'Pickup' %> Info
+            </h3>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px;font-size:0.88rem">
+            <% if (order.deliveryType === 'delivery' && order.deliveryAddress) { %>
+            <div style="display:flex;gap:8px;align-items:flex-start">
+              <i class="fas fa-map-marker-alt" style="color:var(--red);margin-top:2px" aria-hidden="true"></i>
+              <div>
+                <strong>Address</strong>
+                <p style="color:var(--gray);margin-top:2px"><%= order.deliveryAddress %></p>
+                <% if (order.deliveryLandmark) { %>
+                <p style="color:var(--gray-2);font-size:0.8rem"><i class="fas fa-landmark" aria-hidden="true"></i> <%= order.deliveryLandmark %></p>
+                <% } %>
+              </div>
+            </div>
+            <% } else { %>
+            <div style="display:flex;gap:8px;align-items:flex-start">
+              <i class="fas fa-store" style="color:var(--red);margin-top:2px" aria-hidden="true"></i>
+              <div>
+                <strong>Pickup</strong>
+                <p style="color:var(--gray);margin-top:2px">Low-cost, behind youth center, Keffi</p>
+              </div>
+            </div>
+            <% } %>
+            <div style="display:flex;gap:8px;align-items:flex-start">
+              <i class="fas fa-clock" style="color:var(--red);margin-top:2px" aria-hidden="true"></i>
+              <div>
+                <strong>Scheduled</strong>
+                <time datetime="<%= order.scheduledTime %>" style="display:block;color:var(--gray);margin-top:2px">
+                  <%= new Date(order.scheduledTime).toLocaleString('en-NG', { weekday:'short', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) %>
+                </time>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment Info -->
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3><i class="fas fa-wallet" aria-hidden="true"></i> Payment</h3>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;font-size:0.88rem">
+            <div style="display:flex;justify-content:space-between">
+              <span style="color:var(--gray)">Method</span>
+              <strong>
+                <i class="fas <%= order.paymentMethod === 'cash' ? 'fa-money-bills' : order.paymentMethod === 'transfer' ? 'fa-university' : 'fa-credit-card' %>" aria-hidden="true"></i>
+                <%= order.paymentMethod === 'cash' ? 'Cash' : order.paymentMethod === 'transfer' ? 'Bank Transfer' : 'Card (Paystack)' %>
+              </strong>
+            </div>
+            <div style="display:flex;justify-content:space-between">
+              <span style="color:var(--gray)">Status</span>
+              <span class="status-badge status-payment-<%= order.paymentStatus %>"><%= order.paymentStatus.toUpperCase() %></span>
+            </div>
+            <% if (order.paystackReference) { %>
+            <div style="display:flex;justify-content:space-between">
+              <span style="color:var(--gray)">Reference</span>
+              <code style="font-size:0.75rem"><%= order.paystackReference %></code>
+            </div>
+            <% } %>
+            <div style="display:flex;justify-content:space-between;padding-top:8px;border-top:1px solid var(--gray-light)">
+              <strong>Total</strong>
+              <strong style="color:var(--red);font-size:1.1rem">&#8358;<%= order.total.toLocaleString('en-NG') %></strong>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<%- include('../partials/footer') %>

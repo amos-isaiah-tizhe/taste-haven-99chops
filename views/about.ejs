@@ -1,0 +1,117 @@
+<%- include('partials/header') %>
+
+<section class="page-hero">
+  <div class="container">
+    <h1 class="page-hero-title">About Taste Heaven & 99Chops</h1>
+    <p class="page-hero-sub">Our story, mission, and the people behind your favourite meals</p>
+  </div>
+</section>
+
+<section style="padding:70px 0">
+  <div class="container">
+    <div class="about-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center">
+
+      <div>
+        <p class="section-eyebrow">Our Story</p>
+
+        <h2 class="about-title"
+            style="font-family:var(--font-display);font-size:2.2rem;font-weight:700;margin-bottom:20px">
+          Serving Keffi with Authentic Nigerian Flavours
+        </h2>
+
+        <p style="color:var(--gray);line-height:1.8;margin-bottom:16px">
+          Taste Heaven & 99Chops was founded with a simple mission: to bring authentic,
+          freshly made Nigerian food to the tables of families and individuals in Keffi,
+          Nasarawa State.
+        </p>
+
+        <p style="color:var(--gray);line-height:1.8;margin-bottom:16px">
+          From our perfectly seasoned Jollof Rice and slow-cooked Egusi soup to freshly
+          made Pounded Yam and crispy Puff Puff — every dish is crafted with love,
+          quality ingredients, and the kind of taste that keeps you coming back.
+        </p>
+
+        <p style="color:var(--gray);line-height:1.8">
+          Located in the heart of Low-cost area in Keffi, we've become the go-to
+          restaurant for residents who want real Nigerian home cooking without having to
+          cook it themselves.
+        </p>
+
+        <div class="about-buttons"
+             style="display:flex;gap:16px;margin-top:32px">
+          <a href="/menu" class="btn btn-primary">
+            <i class="fas fa-utensils"></i> View Our Menu
+          </a>
+
+          <a href="/contact" class="btn btn-outline">
+            <i class="fas fa-phone"></i> Contact Us
+          </a>
+        </div>
+      </div>
+
+      <div class="stats-grid"
+           style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+
+        <div style="background:linear-gradient(135deg,var(--red),var(--red-dark));border-radius:var(--radius-lg);padding:32px;text-align:center;color:white">
+          <div class="stat-number"
+               style="font-size:3rem;font-weight:800;font-family:var(--font-accent)">
+            22+
+          </div>
+          <div style="opacity:0.85;margin-top:4px">Menu Items</div>
+        </div>
+
+        <div class="stat-card-offset"
+             style="background:linear-gradient(135deg,var(--gold),var(--gold-dark));border-radius:var(--radius-lg);padding:32px;text-align:center;color:white;margin-top:20px">
+          <div class="stat-number"
+               style="font-size:3rem;font-weight:800;font-family:var(--font-accent)">
+            5<i class="fas fa-star" style="font-size:0.8em;color:var(--gold)" aria-hidden="true"></i>
+          </div>
+          <div style="opacity:0.85;margin-top:4px">Customer Rating</div>
+        </div>
+
+        <div class="stat-card-offset-negative"
+             style="background:linear-gradient(135deg,#1A1A1A,#3D3D3D);border-radius:var(--radius-lg);padding:32px;text-align:center;color:white;margin-top:-20px">
+          <div class="stat-number"
+               style="font-size:3rem;font-weight:800;font-family:var(--font-accent)">
+            7AM
+          </div>
+          <div style="opacity:0.85;margin-top:4px">Open Daily</div>
+        </div>
+
+        <div style="background:linear-gradient(135deg,#16A34A,#15803D);border-radius:var(--radius-lg);padding:32px;text-align:center;color:white">
+          <div class="stat-number"
+               style="font-size:3rem;font-weight:800;font-family:var(--font-accent)">
+            Fast
+          </div>
+          <div style="opacity:0.85;margin-top:4px">Delivery</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="padding:60px 0;background:var(--dark)">
+  <div class="container">
+    <div class="section-header light">
+      <p class="section-eyebrow">Our Values</p>
+      <h2 class="section-title" style="color:white">What We Stand For</h2>
+    </div>
+    <div class="why-us-grid">
+      <% [
+        { icon:'fas fa-leaf', title:'Fresh Ingredients', text:'We source the freshest ingredients daily to ensure every meal tastes like home cooking.' },
+        { icon:'fas fa-heart', title:'Made with Love', text:'Every dish is prepared with care, passion, and attention to detail by our dedicated team.' },
+        { icon:'fas fa-bolt', title:'Speed & Efficiency', text:'We respect your time. Our operations are designed for fast preparation and delivery.' },
+        { icon:'fas fa-users', title:'Community First', text:'Taste Heaven is part of the Keffi community. We serve our neighbours like family.' },
+      ].forEach(v => { %>
+      <div class="why-card">
+        <div class="why-icon"><i class="<%= v.icon %>"></i></div>
+        <h3><%= v.title %></h3>
+        <p><%= v.text %></p>
+      </div>
+      <% }) %>
+    </div>
+  </div>
+</section>
+
+<%- include('partials/footer') %>

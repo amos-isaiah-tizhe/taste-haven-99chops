@@ -1,0 +1,48 @@
+{
+  "name": "tastehaven-99chops",
+  "version": "1.0.0",
+  "description": "Taste Heaven & 99Chops Restaurant CMS Website",
+  "main": "server.js",
+  "scripts": {
+  "start": "node server.js",
+  "dev": "nodemon server.js",
+  "prod": "pm2 start ecosystem.config.js --env production",
+  "prod:stop": "pm2 stop tastehaven",
+  "prod:restart": "pm2 restart tastehaven",
+  "prod:logs": "pm2 logs tastehaven",
+  "prod:status": "pm2 status",
+  "seed": "node utils/seeder.js"
+},
+  "dependencies": {
+    "express": "^4.18.2",
+    "ejs": "^3.1.9",
+    "mongoose": "^7.6.3",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "express-session": "^1.17.3",
+    "connect-mongo": "^5.1.0",
+    "express-validator": "^7.0.1",
+    "multer": "^1.4.5-lts.1",
+    "dotenv": "^16.3.1",
+    "helmet": "^7.1.0",
+    "express-rate-limit": "^7.1.5",
+    "cors": "^2.8.5",
+    "morgan": "^1.10.0",
+    "compression": "^1.7.4",
+    "express-mongo-sanitize": "^2.2.0",
+    "xss-clean": "^0.1.4",
+    "hpp": "^0.2.3",
+    "cookie-parser": "^1.4.6",
+    "csurf": "^1.11.0",
+    "nodemailer": "^6.9.7",
+    "moment": "^2.29.4",
+    "uuid": "^9.0.1",
+    "paystack": "^2.0.1",
+    "axios": "^1.6.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "author": "Amos Isaiah Tizhe - OneXportal (OneXportalhq.com)",
+  "license": "ISC"
+}

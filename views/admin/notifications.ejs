@@ -1,0 +1,81 @@
+<%- include('../partials/header') %>
+
+<section class="admin-page">
+  <div class="admin-sidebar"><%- include('./partials/sidebar') %></div>
+  <div class="admin-main">
+
+    <div class="admin-topbar">
+      <div>
+        <h1 class="admin-page-title">Notifications</h1>
+        <p class="admin-page-sub"><%= notifications.length %> notification(s)</p>
+      </div>
+      <button id="markAllReadBtn" class="btn btn-outline btn-sm">
+        <i class="fas fa-check-double" aria-hidden="true"></i> Mark all read
+      </button>
+    </div>
+
+    <div class="admin-card">
+      <% if (notifications.length === 0) { %>
+      <div class="empty-state-sm">
+        <i class="fas fa-bell-slash" aria-hidden="true"></i>
+        <p>No notifications yet.</p>
+      </div>
+      <% } else { %>
+      <div style="display:flex;flex-direction:column;gap:8px;padding:8px" role="list">
+        <% notifications.forEach(n => { %>
+        <div class="notif-full-card <%= n.isRead?'':'notif-full-unread' %>" role="listitem">
+          <div class="notif-full-icon" aria-hidden="true">
+           <i class="fas <%= n.icon %>" aria-hidden="true"></i>
+          </div>
+          <div class="notif-full-body">
+            <div class="notif-full-title"><%= n.title %></div>
+            <div class="notif-full-msg"><%= n.message %></div>
+            <div class="notif-full-time">
+              <i class="fas fa-clock" aria-hidden="true"></i>
+              <time datetime="<%= n.createdAt %>">
+                <%= new Date(n.createdAt).toLocaleString('en-NG',{weekday:'short',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) %>
+              </time>
+            </div>
+          </div>
+          <% if (n.order) { %>
+          <a href="/admin/orders/<%= n.order._id||n.order %>" class="btn btn-sm btn-primary">
+            <i class="fas fa-eye" aria-hidden="true"></i> View Order
+          </a>
+          <% } %>
+          <% if (!n.isRead) { %><span class="notif-unread-dot" aria-label="Unread"></span><% } %>
+        </div>
+        <% }) %>
+      </div>
+      <% } %>
+    </div>
+
+    <!-- Broadcast -->
+    <div class="admin-card">
+      <div class="admin-card-header"><h3><i class="fas fa-bullhorn" aria-hidden="true"></i> Send Broadcast Notification</h3></div>
+      <div style="max-width:520px">
+        <div class="form-group" style="margin-bottom:12px">
+          <label for="broadcastTarget">Target</label>
+          <select id="broadcastTarget" class="form-control">
+            <option value="all">All Users</option>
+            <option value="customers">Customers Only</option>
+            <option value="admins">Admins Only</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:12px">
+          <label for="broadcastTitle">Title</label>
+          <input type="text" id="broadcastTitle" class="form-control" placeholder="Notification title&hellip;" />
+        </div>
+        <div class="form-group" style="margin-bottom:16px">
+          <label for="broadcastMessage">Message</label>
+          <textarea id="broadcastMessage" rows="3" class="form-control" placeholder="Your message&hellip;"></textarea>
+        </div>
+        <button id="broadcastSendBtn" class="btn btn-primary">
+          <i class="fas fa-paper-plane" aria-hidden="true"></i> Send Broadcast
+        </button>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<%- include('../partials/footer') %>

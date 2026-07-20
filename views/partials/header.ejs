@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="description"
+    content="Taste Heaven & 99Chops - Great Food, Great Taste, Every Time! Order Nigerian meals in Keffi, Nasarawa State." />
+  <meta name="theme-color" content="#C41E1E" />
+  <title><%= typeof title !== 'undefined' ? title : 'Taste Heaven & 99Chops' %></title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600&display=swap" rel="stylesheet" />
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+  <!-- Main CSS -->
+  <link rel="stylesheet" href="/css/main.css" />
+  <link rel="icon" href="/images/favicon.png" type="image/x-icon" />
+</head>
+
+<body class="<%= typeof isAdmin !== 'undefined' && isAdmin ? 'admin-body' : '' %>">
+
+  <!-- Flash Message -->
+  <% if (flashMessage) { %>
+  <div class="flash-message flash-<%= flashType || 'info' %>" id="flashMsg" role="alert" aria-live="polite">
+    <div class="flash-content">
+      <span class="flash-icon" aria-hidden="true">
+        <% if (flashType === 'success') { %><i class="fas fa-check-circle"></i>
+        <% } else if (flashType === 'error') { %><i class="fas fa-times-circle"></i>
+        <% } else if (flashType === 'warning') { %><i class="fas fa-exclamation-triangle"></i>
+        <% } else { %><i class="fas fa-info-circle"></i>
+        <% } %>
+      </span>
+      <span class="flash-text"><%= flashMessage %></span>
+      <button class="flash-close" id="flashClose" aria-label="Dismiss notification">
+        <i class="fas fa-times" aria-hidden="true"></i>
+      </button>
+    </div>
+  </div>
+  <% } %>
+
+  <!-- Top Bar -->
+  <div class="topbar" role="banner">
+    <div class="container">
+      <div class="topbar-left">
+        <span><i class="fas fa-map-marker-alt" aria-hidden="true"></i> Low-cost, behind youth center, Keffi, Nasarawa</span>
+        <span class="topbar-divider" aria-hidden="true">|</span>
+        <span><i class="fas fa-clock" aria-hidden="true"></i> Mon&ndash;Sun: 7AM &ndash; 10PM</span>
+      </div>
+      <div class="topbar-right">
+        <a href="tel:<%= restaurantPhone %>" aria-label="Call us">
+          <i class="fas fa-phone" aria-hidden="true"></i> <%= restaurantPhone %>
+        </a>
+        <a href="https://wa.me/<%= whatsappNumber %>" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp us">
+          <i class="fab fa-whatsapp" aria-hidden="true"></i> WhatsApp
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Navigation -->
+  <nav class="navbar" id="navbar" role="navigation" aria-label="Main navigation">
+    <div class="container nav-container">
+
+      <!-- Logo -->
+      <a href="/" class="nav-logo" aria-label="Taste Heaven & 99Chops - Home">
+        <div class="logo-icon" aria-hidden="true"><i class="fas fa-utensils"></i></div>
+        <div class="logo-text">
+          <span class="logo-name">Taste Heaven</span>
+          <span class="logo-sub">&amp; 99Chops</span>
+        </div>
+      </a>
+
+      <!-- Desktop Nav Links -->
+      <ul class="nav-links" id="navLinks" role="menubar">
+        <li role="none">
+          <a href="/" class="<%= currentPath === '/' ? 'active' : '' %>" role="menuitem">Home</a>
+        </li>
+        <li role="none">
+          <a href="/menu" class="<%= currentPath.startsWith('/menu') ? 'active' : '' %>" role="menuitem">Menu</a>
+        </li>
+        <li class="dropdown" role="none">
+          <button class="dropdown-toggle" id="catDropdownBtn"
+            aria-haspopup="true" aria-expanded="false" role="menuitem">
+            Categories <i class="fas fa-chevron-down" aria-hidden="true"></i>
+          </button>
+          <!-- No 'hidden' attribute — JS controls visibility via style.display -->
+          <ul class="dropdown-menu" id="catDropdownMenu" role="menu" aria-labelledby="catDropdownBtn">
+            <li role="none"><a href="/menu/category/rice-meals" role="menuitem"><i class="fas fa-bowl-rice" aria-hidden="true"></i> Rice Meals</a></li>
+            <li role="none"><a href="/menu/category/swallow-meals" role="menuitem"><i class="fas fa-circle-dot" aria-hidden="true"></i> Swallow Meals</a></li>
+            <li role="none"><a href="/menu/category/breakfast" role="menuitem"><i class="fas fa-sun" aria-hidden="true"></i> Breakfast</a></li>
+            <li role="none"><a href="/menu/category/snacks" role="menuitem"><i class="fas fa-cookie-bite" aria-hidden="true"></i> Snacks</a></li>
+            <li role="none"><a href="/menu/category/drinks" role="menuitem"><i class="fas fa-glass-water" aria-hidden="true"></i> Drinks</a></li>
+            <li role="none"><a href="/menu/category/combo-offers" role="menuitem"><i class="fas fa-star" aria-hidden="true"></i> Combo Offers</a></li>
+          </ul>
+        </li>
+        <li role="none"><a href="/about" role="menuitem">About</a></li>
+        <li role="none"><a href="/contact" role="menuitem">Contact</a></li>
+      </ul>
+
+      <!-- Nav Right -->
+      <div class="nav-right">
+
+        <!-- Search Toggle -->
+        <button class="nav-icon-btn" id="searchToggle"
+          aria-label="Open search" aria-expanded="false" aria-controls="searchBar">
+          <i class="fas fa-search" aria-hidden="true"></i>
+        </button>
+
+        <!-- Cart (logged in only) -->
+        <% if (user) { %>
+        <button class="nav-icon-btn cart-btn" id="cartToggle"
+          aria-label="Open cart" aria-expanded="false" aria-controls="cartSidebar">
+          <i class="fas fa-shopping-cart" aria-hidden="true"></i>
+          <span class="badge" id="cartBadge" aria-label="Cart items">0</span>
+        </button>
+        <% } %>
+
+        <!-- Notifications (logged in only) -->
+        <% if (user) { %>
+        <div class="nav-notification">
+          <button class="nav-icon-btn" id="notifToggle"
+            aria-label="Notifications" aria-expanded="false" aria-controls="notifDropdown">
+            <i class="fas fa-bell" aria-hidden="true"></i>
+            <span class="badge" id="notifBadge" style="display:none" aria-label="Unread notifications">0</span>
+          </button>
+          <div class="notif-dropdown" id="notifDropdown" role="region" aria-label="Notifications">
+            <div class="notif-header">
+              <span>Notifications</span>
+              <button id="markAllReadBtn" class="notif-mark-all" aria-label="Mark all notifications as read">
+                Mark all read
+              </button>
+            </div>
+            <div class="notif-list" id="notifList" role="list">
+              <div class="notif-empty">Loading&hellip;</div>
+            </div>
+            <a href="/<%= isAdmin ? 'admin' : 'customer' %>/notifications" class="notif-see-all">
+              See all notifications
+            </a>
+          </div>
+        </div>
+        <% } %>
+
+        <!-- User Dropdown (logged in) -->
+        <% if (user) { %>
+        <div class="nav-user-dropdown">
+          <button class="nav-user-btn" id="userMenuToggle"
+            aria-haspopup="true" aria-expanded="false" aria-controls="userDropdownMenu">
+            <div class="user-avatar-small" aria-hidden="true">
+              <%= (user.firstName || 'U').charAt(0) %><%= (user.lastName || 'U').charAt(0) %>
+            </div>
+            <span class="user-name-nav"><%= user.firstName || 'User' %></span>
+            <i class="fas fa-chevron-down" aria-hidden="true"></i>
+          </button>
+          <div class="user-dropdown-menu" id="userDropdownMenu" role="menu">
+            <div class="user-dropdown-header">
+              <div class="user-dropdown-avatar" aria-hidden="true">
+                <%= (user.firstName || 'U').charAt(0) %><%= (user.lastName || 'U').charAt(0) %>
+              </div>
+              <div>
+                <div class="user-dropdown-name"><%= user.firstName || '' %> <%= user.lastName || '' %></div>
+                <div class="user-dropdown-email"><%= user.email || '' %></div>
+                <span class="role-badge role-<%= user.role %>"><%= user.role %></span>
+              </div>
+            </div>
+            <div class="user-dropdown-links" role="none">
+              <% if (isAdmin) { %>
+              <a href="/admin/dashboard" role="menuitem"><i class="fas fa-tachometer-alt" aria-hidden="true"></i> Admin Dashboard</a>
+              <a href="/admin/orders" role="menuitem"><i class="fas fa-list-alt" aria-hidden="true"></i> Manage Orders</a>
+              <a href="/admin/menu" role="menuitem"><i class="fas fa-utensils" aria-hidden="true"></i> Manage Menu</a>
+              <% if (isSuperAdmin) { %>
+              <a href="/admin/users" role="menuitem"><i class="fas fa-users" aria-hidden="true"></i> Manage Users</a>
+              <a href="/admin/analytics" role="menuitem"><i class="fas fa-chart-bar" aria-hidden="true"></i> Analytics</a>
+              <% } %>
+              <hr />
+              <% } %>
+              <a href="/customer/dashboard" role="menuitem"><i class="fas fa-home" aria-hidden="true"></i> My Dashboard</a>
+              <a href="/customer/orders" role="menuitem"><i class="fas fa-receipt" aria-hidden="true"></i> My Orders</a>
+              <a href="/customer/profile" role="menuitem"><i class="fas fa-user" aria-hidden="true"></i> My Profile</a>
+              <hr />
+              <form action="/auth/logout" method="POST">
+                <button type="submit" class="logout-btn" role="menuitem">
+                  <i class="fas fa-sign-out-alt" aria-hidden="true"></i> Logout
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+        <% } else { %>
+        <!-- Guest buttons — hidden on mobile to save space -->
+        <a href="/auth/login" class="btn btn-outline-nav nav-guest-btn">Login</a>
+        <a href="/auth/register" class="btn btn-primary-nav nav-guest-btn">Get Started</a>
+        <% } %>
+
+        <!-- Mobile Toggle (always last) -->
+        <button class="mobile-toggle" id="mobileToggle"
+  aria-label="Toggle mobile menu" aria-expanded="false" aria-controls="navLinks">
+  <i class="fas fa-bars" id="mobileToggleIcon" aria-hidden="true"></i>
+</button>
+
+      </div><!-- end nav-right -->
+    </div><!-- end nav-container -->
+
+    <!-- Search Bar (below nav) -->
+    <div class="search-bar-expanded" id="searchBar">
+      <div class="container">
+        <div class="search-input-wrap" role="search">
+          <i class="fas fa-search" aria-hidden="true"></i>
+          <input type="search" id="globalSearch"
+            placeholder="Search meals, drinks, snacks&hellip;"
+            autocomplete="off" aria-label="Search menu" />
+          <button id="searchClose" aria-label="Close search">
+            <i class="fas fa-times" aria-hidden="true"></i>
+          </button>
+        </div>
+        <div class="search-results-dropdown" id="searchResults" role="listbox" aria-label="Search results"></div>
+      </div>
+    </div>
+
+  </nav><!-- end navbar -->
+
+  <!-- Cart Sidebar (logged-in only) -->
+  <% if (user) { %>
+  <div class="cart-overlay" id="cartOverlay" aria-hidden="true"></div>
+  <aside class="cart-sidebar" id="cartSidebar" aria-label="Shopping cart" aria-hidden="true">
+    <div class="cart-header">
+      <h3><i class="fas fa-shopping-cart" aria-hidden="true"></i> Your Cart</h3>
+      <button id="cartClose" aria-label="Close cart">
+        <i class="fas fa-times" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div class="cart-body" id="cartBody">
+      <div class="cart-empty" id="cartEmpty">
+        <i class="fas fa-shopping-bag" aria-hidden="true"></i>
+        <p>Your cart is empty</p>
+        <a href="/menu" class="btn btn-primary">Browse Menu</a>
+      </div>
+      <div id="cartItems" role="list"></div>
+    </div>
+    <div class="cart-footer" id="cartFooter" hidden>
+      <div class="cart-total">
+        <span>Total:</span>
+        <span class="cart-total-price" id="cartTotalDisplay">&#8358;0</span>
+      </div>
+      <a href="/orders/checkout" class="btn btn-primary btn-full">
+        <i class="fas fa-credit-card" aria-hidden="true"></i> Proceed to Checkout
+      </a>
+      <button id="clearCartBtn" class="btn btn-outline btn-full" style="margin-top:8px">
+        <i class="fas fa-trash" aria-hidden="true"></i> Clear Cart
+      </button>
+    </div>
+  </aside>
+  <% } %>
+
+  <!-- App Data Island (read by JS modules, never executed) -->
+  <script type="application/json" id="thAppData">
+{
+  "user":        <%- user ? JSON.stringify({ id: user._id, firstName: user.firstName, lastName: user.lastName, role: user.role }) : 'null' %>,
+  "whatsapp":    "<%= whatsappNumber %>",
+  "phone":       "<%= restaurantPhone %>",
+  "isAdmin":     <%- isAdmin ? 'true' : 'false' %>,
+  "paystackKey": "<%= typeof paystackPublicKey !== 'undefined' ? paystackPublicKey : '' %>"
+}
+  </script>
+
+  <main class="main-content" id="mainContent">

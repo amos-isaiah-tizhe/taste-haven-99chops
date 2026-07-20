@@ -1,0 +1,206 @@
+<%- include('../partials/header') %>
+
+<section class="admin-page">
+  <div class="admin-sidebar"><%- include('./partials/sidebar') %></div>
+  <div class="admin-main">
+
+    <div class="admin-topbar">
+      <div>
+        <h1 class="admin-page-title">Admin Dashboard</h1>
+        <p class="admin-page-sub">Welcome back, <%= user.firstName %>! Here&rsquo;s your restaurant overview.</p>
+      </div>
+      <div class="admin-topbar-right">
+        <span class="admin-datetime" id="adminDateTime" aria-live="polite"></span>
+        <a href="/admin/notifications" class="btn btn-outline-sm">
+          <i class="fas fa-bell" aria-hidden="true"></i>
+          <% if (unreadNotifications > 0) { %>
+          <span class="badge-sm" aria-label="<%= unreadNotifications %> unread"><%= unreadNotifications %></span>
+          <% } %>
+        </a>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="admin-stats-grid" role="list">
+      <div class="admin-stat-card stat-orange" role="listitem">
+        <div class="admin-stat-icon" aria-hidden="true"><i class="fas fa-receipt"></i></div>
+        <div class="admin-stat-body">
+          <span class="admin-stat-value"><%= stats.todayOrders %></span>
+          <span class="admin-stat-label">Today&rsquo;s Orders</span>
+        </div>
+      </div>
+      <div class="admin-stat-card stat-red" role="listitem">
+        <div class="admin-stat-icon" aria-hidden="true"><i class="fas fa-clock"></i></div>
+        <div class="admin-stat-body">
+          <span class="admin-stat-value"><%= stats.pendingOrders %></span>
+          <span class="admin-stat-label">Pending Orders</span>
+        </div>
+      </div>
+      <div class="admin-stat-card stat-green" role="listitem">
+        <div class="admin-stat-icon" aria-hidden="true"><i class="fas fa-money-bill-wave"></i></div>
+        <div class="admin-stat-body">
+          <span class="admin-stat-value">&#8358;<%= (stats.monthRevenue||0).toLocaleString('en-NG') %></span>
+          <span class="admin-stat-label">This Month Revenue</span>
+        </div>
+      </div>
+      <div class="admin-stat-card stat-blue" role="listitem">
+        <div class="admin-stat-icon" aria-hidden="true"><i class="fas fa-users"></i></div>
+        <div class="admin-stat-body">
+          <span class="admin-stat-value"><%= stats.totalCustomers %></span>
+          <span class="admin-stat-label">Total Customers</span>
+        </div>
+      </div>
+      <div class="admin-stat-card stat-purple" role="listitem">
+        <div class="admin-stat-icon" aria-hidden="true"><i class="fas fa-check-circle"></i></div>
+        <div class="admin-stat-body">
+          <span class="admin-stat-value"><%= stats.menuAvailable %></span>
+          <span class="admin-stat-label">Menu Available</span>
+        </div>
+      </div>
+      <div class="admin-stat-card stat-gray" role="listitem">
+        <div class="admin-stat-icon" aria-hidden="true"><i class="fas fa-times-circle"></i></div>
+        <div class="admin-stat-body">
+          <span class="admin-stat-value"><%= stats.menuUnavailable %></span>
+          <span class="admin-stat-label">Unavailable Items</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Orders -->
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <h3><i class="fas fa-fire" aria-hidden="true"></i> Active Orders
+          <span class="badge-red" aria-label="<%= recentOrders.length %> active"><%= recentOrders.length %></span>
+        </h3>
+        <a href="/admin/orders" class="btn btn-sm btn-outline">View All Orders</a>
+      </div>
+
+      <% if (recentOrders.length === 0) { %>
+      <div class="empty-state-sm">
+        <i class="fas fa-inbox" aria-hidden="true"></i>
+        <p>No active orders right now.</p>
+      </div>
+      <% } else { %>
+      <div class="admin-table-wrap" role="region" aria-label="Active orders">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th scope="col">Order #</th>
+              <th scope="col">Customer</th>
+              <th scope="col">Phone</th>
+              <th scope="col">Type</th>
+              <th scope="col">Total</th>
+              <th scope="col">Status</th>
+              <th scope="col">Time</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% recentOrders.forEach(order => { %>
+            <tr id="order-row-<%= order._id %>">
+              <td><strong>#<%= order.orderNumber %></strong></td>
+              <td><%= order.customer?.firstName %> <%= order.customer?.lastName %></td>
+              <td><a href="tel:<%= order.customer?.phone %>"><%= order.customer?.phone %></a></td>
+              <td>
+                <span class="delivery-tag delivery-tag-<%= order.deliveryType %>">
+                  <i class="fas <%= order.deliveryType==='delivery'?'fa-motorcycle':'fa-store' %>" aria-hidden="true"></i>
+                  <%= order.deliveryType %>
+                </span>
+              </td>
+              <td><strong>&#8358;<%= order.total.toLocaleString('en-NG') %></strong></td>
+              <td>
+                <select class="status-select"
+                  data-order-id="<%= order._id %>"
+                  aria-label="Order status for #<%= order.orderNumber %>">
+                  <% ['pending','confirmed','preparing','ready','out-for-delivery','delivered','cancelled'].forEach(s => { %>
+                  <option value="<%= s %>" <%= order.status===s?'selected':'' %>><%= s.toUpperCase() %></option>
+                  <% }) %>
+                </select>
+              </td>
+              <td class="time-cell">
+                <time datetime="<%= order.createdAt %>">
+                  <%= new Date(order.createdAt).toLocaleTimeString('en-NG',{hour:'2-digit',minute:'2-digit'}) %>
+                </time>
+              </td>
+              <td class="actions-cell">
+                <a href="/admin/orders/<%= order._id %>" class="btn btn-sm btn-primary" aria-label="View order #<%= order.orderNumber %>">
+                  <i class="fas fa-eye" aria-hidden="true"></i>
+                </a>
+                <button class="btn btn-sm btn-outline"
+                  data-notify-order="<%= order._id %>"
+                  aria-label="Notify customer for order #<%= order.orderNumber %>">
+                  <i class="fas fa-bell" aria-hidden="true"></i>
+                </button>
+              </td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+      <% } %>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="admin-quick-actions">
+      <h3>Quick Actions</h3>
+      <div class="admin-qa-grid">
+        <a href="/admin/menu/new"    class="admin-qa-card"><i class="fas fa-plus-circle" aria-hidden="true"></i><span>Add Menu Item</span></a>
+        <a href="/admin/menu"        class="admin-qa-card"><i class="fas fa-utensils" aria-hidden="true"></i><span>Manage Menu</span></a>
+        <a href="/admin/orders"      class="admin-qa-card"><i class="fas fa-list-alt" aria-hidden="true"></i><span>All Orders</span></a>
+        <% if (isSuperAdmin) { %>
+        <a href="/admin/users"       class="admin-qa-card"><i class="fas fa-users" aria-hidden="true"></i><span>Manage Users</span></a>
+        <a href="/admin/analytics"   class="admin-qa-card"><i class="fas fa-chart-bar" aria-hidden="true"></i><span>Analytics</span></a>
+        <% } %>
+        <a href="/admin/notifications" class="admin-qa-card"><i class="fas fa-bullhorn" aria-hidden="true"></i><span>Broadcast</span></a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- Notify Customer Modal -->
+<div class="modal-overlay" id="notifyModal" role="dialog" aria-modal="true" aria-labelledby="notifyModalTitle" hidden>
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="notifyModalTitle"><i class="fas fa-bell" aria-hidden="true"></i> Send Notification to Customer</h3>
+      <button id="notifyModalClose" class="modal-close" aria-label="Close notification dialog">
+        <i class="fas fa-times" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label for="notifTitle">Notification Title</label>
+        <input type="text" id="notifTitle" class="form-control" placeholder="e.g. Update on your order&hellip;" />
+      </div>
+      <div class="form-group">
+        <label for="notifMessage">Message</label>
+        <textarea id="notifMessage" rows="4" class="form-control" placeholder="Enter your message to the customer&hellip;"></textarea>
+      </div>
+      <div class="quick-templates" role="group" aria-label="Message templates">
+        <p class="form-hint">Quick templates:</p>
+        <div class="template-btns">
+          <button type="button" class="quick-time-btn"
+            data-notif-template="Running slightly late||Your order is running slightly late. Thank you for your patience!">
+            <i class="fas fa-clock" aria-hidden="true"></i> Running late
+          </button>
+          <button type="button" class="quick-time-btn"
+            data-notif-template="Payment reminder||Hi! Kindly complete your payment to proceed with your order.">
+            <i class="fas fa-credit-card" aria-hidden="true"></i> Payment reminder
+          </button>
+          <button type="button" class="quick-time-btn"
+            data-notif-template="Item out of stock||An item in your order is currently out of stock. We will contact you to adjust.">
+            <i class="fas fa-triangle-exclamation" aria-hidden="true"></i> Out of stock
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button id="notifyModalClose2" class="btn btn-outline">Cancel</button>
+      <button id="notifySendBtn" class="btn btn-primary">
+        <i class="fas fa-paper-plane" aria-hidden="true"></i> Send Notification
+      </button>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

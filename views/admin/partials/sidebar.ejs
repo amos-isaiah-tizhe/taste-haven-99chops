@@ -1,0 +1,73 @@
+<div class="sidebar-brand">
+  <a href="/" class="sidebar-logo">
+    <i class="fas fa-utensils" aria-hidden="true"></i>
+    <div>
+      <span class="sidebar-logo-name">Taste Heaven</span>
+      <span class="sidebar-logo-sub">Admin Panel</span>
+    </div>
+  </a>
+</div>
+
+<nav class="sidebar-nav">
+  <div class="sidebar-section-label">Main</div>
+  <a href="/admin/dashboard" class="sidebar-link <%= currentPath === '/admin/dashboard' ? 'active' : '' %>">
+    <i class="fas fa-tachometer-alt"></i> Dashboard
+  </a>
+  <a href="/admin/orders" class="sidebar-link <%= currentPath.startsWith('/admin/orders') ? 'active' : '' %>">
+    <i class="fas fa-receipt"></i> Orders
+    <span class="sidebar-badge" id="sidebarPendingBadge"></span>
+  </a>
+  <a href="/admin/menu" class="sidebar-link <%= currentPath.startsWith('/admin/menu') ? 'active' : '' %>">
+    <i class="fas fa-utensils"></i> Menu
+  </a>
+  <a href="/admin/notifications"
+    class="sidebar-link <%= currentPath.startsWith('/admin/notifications') ? 'active' : '' %>">
+    <i class="fas fa-bell"></i> Notifications
+  </a>
+
+  <% if (isSuperAdmin) { %>
+    <div class="sidebar-section-label">Super Admin</div>
+    <a href="/admin/users" class="sidebar-link <%= currentPath.startsWith('/admin/users') ? 'active' : '' %>">
+      <i class="fas fa-users"></i> Users
+    </a>
+    <a href="/admin/analytics" class="sidebar-link <%= currentPath.startsWith('/admin/analytics') ? 'active' : '' %>">
+      <i class="fas fa-chart-bar"></i> Analytics
+    </a>
+    <% } %>
+
+      <div class="sidebar-section-label">Restaurant</div>
+      <a href="/" target="_blank" class="sidebar-link">
+        <i class="fas fa-external-link-alt"></i> View Website
+      </a>
+      <a href="https://wa.me/<%= whatsappNumber %>" target="_blank" class="sidebar-link">
+        <i class="fab fa-whatsapp"></i> WhatsApp
+      </a>
+      <a href="/customer/dashboard" class="sidebar-link">
+        <i class="fas fa-user"></i> Customer View
+      </a>
+
+      <div class="sidebar-divider"></div>
+      <form action="/auth/logout" method="POST">
+        <button type="submit" class="sidebar-link sidebar-logout">
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </button>
+      </form>
+</nav>
+
+<div class="sidebar-footer">
+  <div class="sidebar-admin-info">
+    <div class="sidebar-avatar">
+      <%= (user.firstName || 'U' ).charAt(0) %>
+        <%= (user.lastName || 'U' ).charAt(0) %>
+    </div>
+    <div>
+      <div class="sidebar-admin-name">
+        <%= user.firstName %>
+          <%= user.lastName %>
+      </div>
+      <span class="role-badge role-<%= user.role %>">
+        <%= user.role %>
+      </span>
+    </div>
+  </div>
+</div>

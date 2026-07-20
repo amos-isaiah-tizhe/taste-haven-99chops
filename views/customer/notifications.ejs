@@ -1,0 +1,57 @@
+<%- include('../partials/header') %>
+
+<section class="page-hero page-hero-sm">
+  <div class="container">
+    <h1 class="page-hero-title"><i class="fas fa-bell" aria-hidden="true"></i> Notifications</h1>
+    <p class="page-hero-sub">Stay updated on your orders and promotions</p>
+  </div>
+</section>
+
+<section style="padding:32px 0 60px">
+  <div class="container" style="max-width:720px">
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <span style="color:var(--gray);font-size:0.9rem"><%= notifications.length %> notification(s)</span>
+      <button id="markAllReadBtn" class="btn btn-outline btn-sm">
+        <i class="fas fa-check-double" aria-hidden="true"></i> Mark all read
+      </button>
+    </div>
+
+    <% if (notifications.length === 0) { %>
+    <div class="empty-state" role="alert">
+      <i class="fas fa-bell-slash" aria-hidden="true"></i>
+      <h3>No notifications yet</h3>
+      <p>We&rsquo;ll notify you about your orders, offers, and more!</p>
+      <a href="/menu" class="btn btn-primary"><i class="fas fa-utensils" aria-hidden="true"></i> Browse Menu</a>
+    </div>
+    <% } else { %>
+    <div style="display:flex;flex-direction:column;gap:10px" role="list">
+      <% notifications.forEach(n => { %>
+      <div class="notif-full-card <%= n.isRead?'':'notif-full-unread' %>" role="listitem">
+        <div class="notif-full-icon" aria-hidden="true">
+          <i class="fas <%= n.icon %>" aria-hidden="true"></i>
+        </div>
+        <div class="notif-full-body">
+          <div class="notif-full-title"><%= n.title %></div>
+          <div class="notif-full-msg"><%= n.message %></div>
+          <div class="notif-full-time">
+            <i class="fas fa-clock" aria-hidden="true"></i>
+            <time datetime="<%= n.createdAt %>">
+              <%= new Date(n.createdAt).toLocaleString('en-NG',{weekday:'short',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) %>
+            </time>
+          </div>
+        </div>
+        <% if (n.actionUrl) { %>
+        <a href="<%= n.actionUrl %>" class="btn btn-sm btn-outline">
+          <i class="fas fa-eye" aria-hidden="true"></i> View
+        </a>
+        <% } %>
+        <% if (!n.isRead) { %><span class="notif-unread-dot" aria-label="Unread"></span><% } %>
+      </div>
+      <% }) %>
+    </div>
+    <% } %>
+  </div>
+</section>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,179 @@
+<%- include('../partials/header') %>
+
+  <section class="dashboard-page">
+    <div class="container">
+
+      <div class="dashboard-header">
+        <div class="dashboard-welcome">
+          <div class="dashboard-avatar" aria-hidden="true">
+            <%= (user.firstName || 'U' ).charAt(0) %>
+              <%= (user.lastName || 'U' ).charAt(0) %>
+          </div>
+          <div>
+            <h1>Welcome back, <%= user.firstName %>!</h1>
+            <p>Here&rsquo;s what&rsquo;s happening with your orders</p>
+          </div>
+        </div>
+        <a href="/menu" class="btn btn-primary">
+          <i class="fas fa-plus" aria-hidden="true"></i> New Order
+        </a>
+      </div>
+
+      <!-- Stats -->
+      <div class="dashboard-stats" role="list">
+        <div class="stat-card" role="listitem">
+          <div class="stat-icon stat-icon-orange" aria-hidden="true"><i class="fas fa-receipt"></i></div>
+          <div class="stat-info">
+            <span class="stat-value">
+              <%= stats.totalOrders %>
+            </span>
+            <span class="stat-label">Total Orders</span>
+          </div>
+        </div>
+        <div class="stat-card" role="listitem">
+          <div class="stat-icon stat-icon-green" aria-hidden="true"><i class="fas fa-money-bill-wave"></i></div>
+          <div class="stat-info">
+            <span class="stat-value">&#8358;<%= (stats.totalSpent||0).toLocaleString('en-NG') %></span>
+            <span class="stat-label">Total Spent</span>
+          </div>
+        </div>
+        <div class="stat-card" role="listitem">
+          <div class="stat-icon stat-icon-blue" aria-hidden="true"><i class="fas fa-chart-line"></i></div>
+          <div class="stat-info">
+            <span class="stat-value">&#8358;<%= Math.round(stats.avgOrder||0).toLocaleString('en-NG') %></span>
+            <span class="stat-label">Avg. Order</span>
+          </div>
+        </div>
+        <div class="stat-card" role="listitem">
+          <div class="stat-icon stat-icon-red" aria-hidden="true"><i class="fas fa-bell"></i></div>
+          <div class="stat-info">
+            <span class="stat-value">
+              <%= unreadNotifications.length %>
+            </span>
+            <span class="stat-label">Unread Alerts</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+
+        <!-- Recent Orders -->
+        <div class="dashboard-card">
+          <div class="dash-card-header">
+            <h3><i class="fas fa-receipt" aria-hidden="true"></i> Recent Orders</h3>
+            <a href="/customer/orders" class="dash-card-link">View all <i class="fas fa-arrow-right"
+                aria-hidden="true"></i></a>
+          </div>
+          <% if (recentOrders.length===0) { %>
+            <div class="empty-state-sm">
+              <i class="fas fa-shopping-bag" aria-hidden="true"></i>
+              <p>No orders yet. <a href="/menu">Start ordering!</a></p>
+            </div>
+            <% } else { %>
+              <div class="recent-orders-list" role="list">
+                <% recentOrders.forEach(order=> { %>
+                  <div class="recent-order-item" role="listitem">
+                    <div class="recent-order-info">
+                      <span class="order-num">#<%= order.orderNumber %></span>
+                      <span class="order-date">
+                        <i class="fas fa-clock" aria-hidden="true"></i>
+                        <time datetime="<%= order.createdAt %>">
+                          <%= new
+                            Date(order.createdAt).toLocaleDateString('en-NG',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})
+                            %>
+                        </time>
+                      </span>
+                    </div>
+                    <div class="recent-order-meta">
+                      <span class="status-badge status-<%= order.status %>">
+                        <%= order.status %>
+                      </span>
+                      <i class="fas <%= order.deliveryType==='delivery'?'fa-motorcycle':'fa-store' %>"
+                        aria-hidden="true" title="<%= order.deliveryType %>"></i>
+                    </div>
+                    <div class="recent-order-total">&#8358;<%= order.total.toLocaleString('en-NG') %>
+                    </div>
+                    <a href="/orders/<%= order._id %>" class="btn btn-sm btn-outline">
+                      <i class="fas fa-eye" aria-hidden="true"></i> View
+                    </a>
+                  </div>
+                  <% }) %>
+              </div>
+              <% } %>
+        </div>
+
+        <!-- Notifications -->
+        <div class="dashboard-card">
+          <div class="dash-card-header">
+            <h3>
+              <i class="fas fa-bell" aria-hidden="true"></i> Notifications
+              <% if (unreadNotifications.length> 0) { %>
+                <span class="notif-count-badge" aria-label="<%= unreadNotifications.length %> unread">
+                  <%= unreadNotifications.length %>
+                </span>
+                <% } %>
+            </h3>
+            <a href="/customer/notifications" class="dash-card-link">See all <i class="fas fa-arrow-right"
+                aria-hidden="true"></i></a>
+          </div>
+          <% if (unreadNotifications.length===0) { %>
+            <div class="empty-state-sm">
+              <i class="fas fa-bell-slash" aria-hidden="true"></i>
+              <p>You&rsquo;re all caught up! No new notifications.</p>
+            </div>
+            <% } else { %>
+              <div class="notif-feed" role="list">
+                <% unreadNotifications.forEach(notif=> { %>
+                  <a class="notif-feed-item" href="<%= notif.actionUrl || '/customer/notifications' %>" role="listitem">
+                    <div class="notif-feed-icon" aria-hidden="true">
+                      <i
+                        class="fas <%= notif.type==='order-delivered'?'fa-circle-check':notif.type==='order-cancelled'?'fa-circle-xmark':notif.type==='payment-received'?'fa-money-bill-wave':'fa-bell' %>"></i>
+                    </div>
+                    <div class="notif-feed-body">
+                      <strong>
+                        <%= notif.title %>
+                      </strong>
+                      <p>
+                        <%= notif.message %>
+                      </p>
+                      <span class="notif-feed-time">
+                        <time datetime="<%= notif.createdAt %>">
+                          <%= new
+                            Date(notif.createdAt).toLocaleDateString('en-NG',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})
+                            %>
+                        </time>
+                      </span>
+                    </div>
+                    <i class="fas fa-chevron-right notif-feed-action" aria-hidden="true"></i>
+                  </a>
+                  <% }) %>
+              </div>
+              <% } %>
+        </div>
+
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="dashboard-quick-actions">
+        <h3>Quick Actions</h3>
+        <div class="quick-actions-grid" role="list">
+          <a href="/menu" class="quick-action-card" role="listitem"><i class="fas fa-utensils"
+              aria-hidden="true"></i><span>Browse Menu</span></a>
+          <a href="/menu/category/combo-offers" class="quick-action-card" role="listitem"><i class="fas fa-star"
+              aria-hidden="true"></i><span>Combo Deals</span></a>
+          <a href="/customer/orders" class="quick-action-card" role="listitem"><i class="fas fa-list-alt"
+              aria-hidden="true"></i><span>My Orders</span></a>
+          <a href="/customer/profile" class="quick-action-card" role="listitem"><i class="fas fa-user-edit"
+              aria-hidden="true"></i><span>Edit Profile</span></a>
+          <a href="https://wa.me/<%= whatsappNumber %>" target="_blank" rel="noopener noreferrer"
+            class="quick-action-card" role="listitem"><i class="fab fa-whatsapp" aria-hidden="true"></i><span>WhatsApp
+              Us</span></a>
+          <a href="/customer/notifications" class="quick-action-card" role="listitem"><i class="fas fa-bell"
+              aria-hidden="true"></i><span>Notifications</span></a>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <%- include('../partials/footer') %>

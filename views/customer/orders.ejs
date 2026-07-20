@@ -1,0 +1,153 @@
+<%- include('../partials/header') %>
+
+<section class="page-hero page-hero-sm">
+  <div class="container">
+    <h1 class="page-hero-title"><i class="fas fa-receipt" aria-hidden="true"></i> My Orders</h1>
+    <p class="page-hero-sub">Track and manage all your orders</p>
+  </div>
+</section>
+
+<section style="padding:32px 0 60px">
+  <div class="container">
+
+    <nav class="category-tabs" aria-label="Filter orders by status">
+      <a href="/customer/orders" class="cat-tab <%= !status?'active':'' %>">
+        <i class="fas fa-list" aria-hidden="true"></i> All (<%= total %>)
+      </a>
+      <% [
+        ['pending','fa-hourglass-half','Pending'],
+        ['confirmed','fa-check-circle','Confirmed'],
+        ['preparing','fa-kitchen-set','Preparing'],
+        ['ready','fa-plate-wheat','Ready'],
+        ['out-for-delivery','fa-motorcycle','On the Way'],
+        ['delivered','fa-circle-check','Delivered'],
+        ['cancelled','fa-circle-xmark','Cancelled'],
+      ].forEach(([s, icon, label]) => { %>
+      <a href="/customer/orders?status=<%= s %>"
+         class="cat-tab <%= status===s?'active':'' %>"
+         aria-current="<%= status===s?'page':'' %>">
+        <i class="fas <%= icon %>" aria-hidden="true"></i> <%= label %>
+      </a>
+      <% }) %>
+    </nav>
+
+    <% if (orders.length === 0) { %>
+    <div class="empty-state" role="alert">
+      <i class="fas fa-receipt" aria-hidden="true"></i>
+      <h3>No orders found</h3>
+      <p><%= status ? 'No '+status+' orders.' : "You haven't placed any orders yet." %></p>
+      <a href="/menu" class="btn btn-primary"><i class="fas fa-utensils" aria-hidden="true"></i> Browse Menu</a>
+    </div>
+    <% } else { %>
+    <div style="display:flex;flex-direction:column;gap:14px" role="list" aria-label="Your orders">
+      <% orders.forEach(order => { %>
+      <article class="order-card" role="listitem" aria-label="Order #<%= order.orderNumber %>">
+        <div class="order-card-header">
+          <div class="order-card-info">
+            <span class="order-num-lg">#<%= order.orderNumber %></span>
+            <span class="order-date-lg">
+              <i class="fas fa-calendar-alt" aria-hidden="true"></i>
+              <time datetime="<%= order.createdAt %>">
+                <%= new Date(order.createdAt).toLocaleDateString('en-NG',{weekday:'short',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) %>
+              </time>
+            </span>
+          </div>
+          <div class="order-card-badges">
+            <span class="status-badge status-<%= order.status %>"><%= order.status.toUpperCase() %></span>
+            <span class="delivery-tag delivery-tag-<%= order.deliveryType %>">
+              <i class="fas <%= order.deliveryType==='delivery'?'fa-motorcycle':'fa-store' %>" aria-hidden="true"></i>
+              <%= order.deliveryType %>
+            </span>
+          </div>
+        </div>
+        <div class="order-card-body">
+          <div class="order-card-meta">
+            <div class="order-meta-item">
+              <i class="fas fa-money-bill-wave" aria-hidden="true"></i>
+              <strong>&#8358;<%= order.total.toLocaleString('en-NG') %></strong>
+            </div>
+            <div class="order-meta-item">
+              <i class="fas fa-wallet" aria-hidden="true"></i>
+              <span><%= order.paymentMethod.toUpperCase() %>
+                <span class="status-badge status-payment-<%= order.paymentStatus %>" style="font-size:0.68rem;margin-left:4px"><%= order.paymentStatus %></span>
+              </span>
+            </div>
+            <% if (order.scheduledTime) { %>
+            <div class="order-meta-item">
+              <i class="fas fa-clock" aria-hidden="true"></i>
+              <time datetime="<%= order.scheduledTime %>">
+                Scheduled: <%= new Date(order.scheduledTime).toLocaleDateString('en-NG',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) %>
+              </time>
+            </div>
+            <% } %>
+          </div>
+        </div>
+        <div class="order-card-footer">
+          <a href="/orders/<%= order._id %>" class="btn btn-outline btn-sm">
+            <i class="fas fa-eye" aria-hidden="true"></i> View Details
+          </a>
+          <% if (order.status==='delivered' && !order.rating?.score) { %>
+          <button class="btn btn-sm btn-gold"
+            data-rate-order="<%= order._id %>"
+            aria-label="Rate order #<%= order.orderNumber %>">
+            <i class="fas fa-star" aria-hidden="true"></i> Rate Order
+          </button>
+          <% } %>
+          <% if (order.status==='pending') { %>
+          <span style="font-size:0.82rem;color:var(--gray)">
+            <i class="fas fa-hourglass-half" aria-hidden="true"></i> Awaiting confirmation&hellip;
+          </span>
+          <% } %>
+        </div>
+      </article>
+      <% }) %>
+    </div>
+
+    <% if (totalPages > 1) { %>
+    <nav class="pagination" style="margin-top:24px" aria-label="Orders pagination">
+      <% if (currentPage>1){ %><a href="?page=<%= currentPage-1 %>&status=<%= status %>" class="page-btn" aria-label="Previous"><i class="fas fa-chevron-left" aria-hidden="true"></i></a><% } %>
+      <% for(let i=Math.max(1,currentPage-2);i<=Math.min(totalPages,currentPage+2);i++){ %>
+      <a href="?page=<%= i %>&status=<%= status %>" class="page-btn <%= i===currentPage?'active':'' %>" aria-current="<%= i===currentPage?'page':'' %>"><%= i %></a>
+      <% } %>
+      <% if (currentPage<totalPages){ %><a href="?page=<%= currentPage+1 %>&status=<%= status %>" class="page-btn" aria-label="Next"><i class="fas fa-chevron-right" aria-hidden="true"></i></a><% } %>
+    </nav>
+    <% } %>
+    <% } %>
+  </div>
+</section>
+
+<!-- Rating Modal -->
+<div class="modal-overlay" id="rateModal" role="dialog" aria-modal="true" aria-labelledby="rateModalTitle" hidden>
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <h3 id="rateModalTitle"><i class="fas fa-star" aria-hidden="true"></i> Rate Your Order</h3>
+      <button id="rateModalClose" class="modal-close" aria-label="Close rating dialog">
+        <i class="fas fa-times" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p style="color:var(--gray);margin-bottom:16px">How was your experience?</p>
+      <div class="star-rating-row" role="group" aria-label="Star rating">
+        <% for(let i=1;i<=5;i++) { %>
+        <button type="button" class="star-input" data-val="<%= i %>"
+          aria-label="<%= i %> star<%= i>1?'s':'' %>" aria-pressed="false">
+          <i class="far fa-star" aria-hidden="true"></i>
+        </button>
+        <% } %>
+      </div>
+      <div class="form-group" style="margin-top:16px">
+        <label for="ratingComment">Comment <span style="color:var(--gray);font-weight:400">(optional)</span></label>
+        <textarea id="ratingComment" rows="3" class="form-control"
+          placeholder="Tell us what you loved or how we can improve&hellip;"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button id="rateModalClose2" class="btn btn-outline">Cancel</button>
+      <button id="rateSubmitBtn" class="btn btn-primary">
+        <i class="fas fa-paper-plane" aria-hidden="true"></i> Submit Rating
+      </button>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

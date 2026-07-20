@@ -1,0 +1,162 @@
+<%- include('../partials/header') %>
+
+<section class="confirmation-page">
+  <div class="container">
+    <div class="confirmation-card">
+
+      <div class="confirmation-icon" aria-hidden="true">
+        <div class="checkmark-circle"><i class="fas fa-check"></i></div>
+      </div>
+
+      <h1 class="confirmation-title">Order Placed!</h1>
+      <p class="confirmation-subtitle">Thank you for ordering from Taste Heaven &amp; 99Chops</p>
+
+      <div class="confirmation-order-num" aria-label="Order number">
+        Order #<span><%= order.orderNumber %></span>
+      </div>
+
+      <!-- WhatsApp CTA -->
+      <div class="whatsapp-cta-box" role="region" aria-label="WhatsApp confirmation">
+        <div class="whatsapp-cta-icon" aria-hidden="true">
+          <i class="fab fa-whatsapp"></i>
+        </div>
+        <div class="whatsapp-cta-text">
+          <h3>Confirm Your Order on WhatsApp</h3>
+          <p>Tap below to send your full order summary to us on WhatsApp so we can confirm and prepare your meal.</p>
+        </div>
+        <a href="<%= whatsappUrl %>" target="_blank" rel="noopener noreferrer" class="btn btn-whatsapp btn-lg">
+          <i class="fab fa-whatsapp" aria-hidden="true"></i> Send Order on WhatsApp
+        </a>
+      </div>
+
+      <!-- Order Details -->
+      <div class="confirmation-details">
+        <div class="conf-detail-grid">
+          <div class="conf-detail">
+            <span class="conf-detail-label">Status</span>
+            <span class="status-badge status-<%= order.status %>"><%= order.status.toUpperCase() %></span>
+          </div>
+          <div class="conf-detail">
+            <span class="conf-detail-label">Delivery Type</span>
+            <span>
+              <i class="fas <%= order.deliveryType==='delivery'?'fa-motorcycle':'fa-store' %>" aria-hidden="true"></i>
+              <%= order.deliveryType==='delivery'?'Home Delivery':'Pickup' %>
+            </span>
+          </div>
+          <div class="conf-detail">
+            <span class="conf-detail-label">Payment</span>
+            <span>
+              <i class="fas <%= order.paymentMethod==='cash'?'fa-money-bills':order.paymentMethod==='transfer'?'fa-university':'fa-credit-card' %>" aria-hidden="true"></i>
+              <%= order.paymentMethod==='cash'?'Cash':order.paymentMethod==='transfer'?'Bank Transfer':'Card (Paystack)' %>
+            </span>
+          </div>
+          <div class="conf-detail">
+            <span class="conf-detail-label">Payment Status</span>
+            <span class="status-badge status-payment-<%= order.paymentStatus %>"><%= order.paymentStatus.toUpperCase() %></span>
+          </div>
+          <div class="conf-detail">
+            <span class="conf-detail-label">Scheduled Time</span>
+            <time datetime="<%= order.scheduledTime %>">
+              <% const sTime=new Date(order.scheduledTime); %>
+              <%= sTime.toLocaleDateString('en-NG',{weekday:'short',month:'short',day:'numeric'}) %>
+              at <%= sTime.toLocaleTimeString('en-NG',{hour:'2-digit',minute:'2-digit'}) %>
+            </time>
+          </div>
+          <div class="conf-detail">
+            <span class="conf-detail-label">Total Amount</span>
+            <span class="conf-total">&#8358;<%= order.total.toLocaleString('en-NG') %></span>
+          </div>
+        </div>
+
+        <% if (order.deliveryAddress) { %>
+        <div class="conf-address">
+          <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
+          <div>
+            <strong>Delivery Address</strong>
+            <p><%= order.deliveryAddress %></p>
+            <% if (order.deliveryLandmark) { %><p class="landmark"><i class="fas fa-landmark" aria-hidden="true"></i> <%= order.deliveryLandmark %></p><% } %>
+          </div>
+        </div>
+        <% } %>
+      </div>
+
+      <!-- Items -->
+      <div class="confirmation-items">
+        <h3>Items Ordered</h3>
+        <div role="list">
+          <% order.items.forEach(item => { %>
+          <div class="conf-item" role="listitem">
+            <div class="conf-item-info">
+              <span class="conf-item-name"><%= item.name %></span>
+              <% if (item.spiceLevel && item.spiceLevel!=='medium') { %>
+              <span class="conf-item-detail"><i class="fas fa-pepper-hot" aria-hidden="true"></i> <%= item.spiceLevel %></span>
+              <% } %>
+              <% if (item.extraSpices?.length) { %><span class="conf-item-detail"><i class="fas fa-plus-circle" aria-hidden="true"></i> Extra: <%= item.extraSpices.join(', ') %></span><% } %>
+              <% if (item.removeItems?.length) { %><span class="conf-item-detail"><i class="fas fa-minus-circle" aria-hidden="true"></i> Remove: <%= item.removeItems.join(', ') %></span><% } %>
+              <% if (item.specialInstructions) { %><span class="conf-item-detail"><i class="fas fa-comment" aria-hidden="true"></i> <%= item.specialInstructions %></span><% } %>
+            </div>
+            <div class="conf-item-qty" aria-label="Quantity">x<%= item.quantity %></div>
+            <div class="conf-item-price">&#8358;<%= item.subtotal.toLocaleString('en-NG') %></div>
+          </div>
+          <% }) %>
+        </div>
+        <div class="conf-items-total">
+          <strong>Total: &#8358;<%= order.total.toLocaleString('en-NG') %></strong>
+        </div>
+      </div>
+
+      <!-- Progress Timeline -->
+      <div class="order-tracking-steps">
+        <h3>Order Progress</h3>
+        <%
+          const allStatuses = ['pending','confirmed','preparing','ready',
+            order.deliveryType==='delivery'?'out-for-delivery':null,
+            'delivered'].filter(Boolean);
+          const currentIdx = allStatuses.indexOf(order.status);
+          const statusLabels = {
+            'pending':'Order Placed','confirmed':'Confirmed','preparing':'Preparing',
+            'ready':'Ready','out-for-delivery':'On the Way','delivered':'Delivered',
+          };
+        %>
+        <div class="tracking-timeline" role="list" aria-label="Order status timeline">
+          <% allStatuses.forEach((s,i) => { %>
+          <div class="track-step <%= i<=currentIdx?'track-done':'' %> <%= i===currentIdx?'track-current':'' %>"
+               role="listitem"
+               aria-current="<%= i===currentIdx?'step':'' %>">
+            <div class="track-dot" aria-hidden="true">
+              <% if (i<currentIdx) { %><i class="fas fa-check"></i>
+              <% } else if (i===currentIdx) { %><i class="fas fa-circle-notch fa-spin"></i>
+              <% } else { %><i class="far fa-circle"></i><% } %>
+            </div>
+            <span class="track-label"><%= statusLabels[s]||s %></span>
+          </div>
+          <% if (i < allStatuses.length-1) { %>
+          <div class="track-line <%= i<currentIdx?'track-line-done':'' %>" aria-hidden="true"></div>
+          <% } %>
+          <% }) %>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="confirmation-actions">
+        <a href="/customer/orders" class="btn btn-outline">
+          <i class="fas fa-list" aria-hidden="true"></i> View All Orders
+        </a>
+        <a href="/menu" class="btn btn-primary">
+          <i class="fas fa-utensils" aria-hidden="true"></i> Order More
+        </a>
+        <a href="<%= whatsappUrl %>" target="_blank" rel="noopener noreferrer" class="btn btn-whatsapp">
+          <i class="fab fa-whatsapp" aria-hidden="true"></i> WhatsApp Us
+        </a>
+      </div>
+
+      <p class="confirmation-footer-note">
+        <i class="fas fa-bell" aria-hidden="true"></i>
+        We&rsquo;ll notify you as your order progresses. Track it from your
+        <a href="/customer/dashboard">dashboard</a>.
+      </p>
+    </div>
+  </div>
+</section>
+
+<%- include('../partials/footer') %>

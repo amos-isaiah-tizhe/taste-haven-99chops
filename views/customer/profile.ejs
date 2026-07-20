@@ -1,0 +1,114 @@
+<%- include('../partials/header') %>
+
+<section class="page-hero page-hero-sm">
+  <div class="container">
+    <h1 class="page-hero-title"><i class="fas fa-user" aria-hidden="true"></i> My Profile</h1>
+    <p class="page-hero-sub">Manage your account details and preferences</p>
+  </div>
+</section>
+
+<section style="padding:32px 0 60px">
+  <div class="container" style="max-width:800px">
+
+    <% if (success) { %>
+    <div role="alert" style="background:var(--green-light);color:var(--green);padding:12px 16px;border-radius:var(--radius-sm);margin-bottom:20px;font-weight:600">
+      <i class="fas fa-check-circle" aria-hidden="true"></i> <%= success %>
+    </div>
+    <% } %>
+    <% if (errors && errors.length > 0) { %>
+    <div role="alert" style="margin-bottom:20px">
+      <% errors.forEach(e=>{%><div class="auth-error"><i class="fas fa-exclamation-circle" aria-hidden="true"></i> <%=e.msg%></div><%})%>
+    </div>
+    <% } %>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
+
+      <!-- Personal Info -->
+      <div class="admin-card" style="grid-column:1/-1">
+        <div class="admin-card-header">
+          <h3><i class="fas fa-user-edit" aria-hidden="true"></i> Personal Information</h3>
+        </div>
+        <form action="/customer/profile" method="POST">
+          <div class="form-row-2" style="margin-bottom:16px">
+            <div class="form-group">
+              <label for="firstName">First Name</label>
+              <input type="text" id="firstName" name="firstName" class="form-control" value="<%= user.firstName %>" required />
+            </div>
+            <div class="form-group">
+              <label for="lastName">Last Name</label>
+              <input type="text" id="lastName" name="lastName" class="form-control" value="<%= user.lastName %>" required />
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:16px">
+            <label for="emailDisplay">Email Address</label>
+            <input type="email" id="emailDisplay" class="form-control" value="<%= user.email %>" disabled aria-readonly="true" style="background:var(--bg);color:var(--gray)" />
+            <small class="form-hint">Email cannot be changed. Contact support if needed.</small>
+          </div>
+          <div class="form-group" style="margin-bottom:16px">
+            <label for="phone">Phone Number</label>
+            <input type="tel" id="phone" name="phone" class="form-control" value="<%= user.phone %>" required autocomplete="tel" />
+          </div>
+          <div class="form-group" style="margin-bottom:16px">
+            <label for="defaultAddress">Default Delivery Address</label>
+            <textarea id="defaultAddress" name="defaultAddress" rows="2" class="form-control"
+              placeholder="Your default delivery address&hellip;"><%= user.defaultAddress||'' %></textarea>
+          </div>
+          <div class="form-group" style="margin-bottom:20px">
+            <label for="spiceLevel">Preferred Spice Level</label>
+            <select id="spiceLevel" name="spiceLevel" class="form-control">
+              <% ['mild','medium','spicy','extra-spicy'].forEach(s=>{ %>
+              <option value="<%= s %>" <%= user.preferences?.spiceLevel===s?'selected':'' %>><%= s.charAt(0).toUpperCase()+s.slice(1) %></option>
+              <% }) %>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save" aria-hidden="true"></i> Save Changes
+          </button>
+        </form>
+      </div>
+
+      <!-- Change Password -->
+      <div class="admin-card">
+        <div class="admin-card-header"><h3><i class="fas fa-lock" aria-hidden="true"></i> Change Password</h3></div>
+        <div class="form-group" style="margin-bottom:14px">
+          <label for="currentPwd">Current Password</label>
+          <input type="password" id="currentPwd" class="form-control" placeholder="Current password" autocomplete="current-password" />
+        </div>
+        <div class="form-group" style="margin-bottom:14px">
+          <label for="newPwd">New Password</label>
+          <input type="password" id="newPwd" class="form-control" placeholder="Min 8 chars" autocomplete="new-password" />
+        </div>
+        <div class="form-group" style="margin-bottom:20px">
+          <label for="confirmPwd">Confirm New Password</label>
+          <input type="password" id="confirmPwd" class="form-control" placeholder="Repeat new password" autocomplete="new-password" />
+        </div>
+        <button id="changePasswordBtn" class="btn btn-primary">
+          <i class="fas fa-key" aria-hidden="true"></i> Change Password
+        </button>
+      </div>
+
+      <!-- Account Stats -->
+      <div class="admin-card">
+        <div class="admin-card-header"><h3><i class="fas fa-chart-bar" aria-hidden="true"></i> Account Stats</h3></div>
+        <dl style="display:flex;flex-direction:column;gap:0">
+          <div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--gray-light)">
+            <dt style="color:var(--gray)">Total Orders</dt><dd><strong><%= user.orderCount||0 %></strong></dd>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--gray-light)">
+            <dt style="color:var(--gray)">Total Spent</dt><dd><strong style="color:var(--red)">&#8358;<%= (user.totalSpent||0).toLocaleString('en-NG') %></strong></dd>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--gray-light)">
+            <dt style="color:var(--gray)">Account Type</dt><dd><span class="role-badge role-<%= user.role %>"><%= user.role %></span></dd>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:12px 0">
+            <dt style="color:var(--gray)">Member Since</dt>
+            <dd><time datetime="<%= user.createdAt %>"><strong><%= new Date(user.createdAt).toLocaleDateString('en-NG',{month:'long',year:'numeric'}) %></strong></time></dd>
+          </div>
+        </dl>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<%- include('../partials/footer') %>
