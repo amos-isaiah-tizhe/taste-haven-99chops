@@ -27,23 +27,24 @@
             <label>Item Name <span class="required">*</span></label>
             <input type="text" name="name" class="form-control" value="<%= item?.name || '' %>" required placeholder="e.g. Jollof Rice + Beef" />
           </div>
-          <div class="form-group">
-            <label>Category <span class="required">*</span></label>
-            <select name="category" class="form-control" required>
-              <option value="">Select category...</option>
-              <% [
-                [['rice-meals','Rice Meals'],
-['swallow-meals','Swallow Meals'],
-['breakfast','Breakfast'],
-['snacks','Snacks'],
-['drinks','Drinks'],
-                ['combo-offers','⭐ Combo Offers']
-              ].forEach(([val, label]) => { %>
-              <option value="<%= val %>" <%= (item?.category === val) ? 'selected' : '' %>><%= label %></option>
-              <% }) %>
-            </select>
-          </div>
-        </div>
+      <div class="form-group">
+  <label for="category">
+    <i class="fas fa-tag" aria-hidden="true"></i> Category <span class="required">*</span>
+  </label>
+  <select id="category" name="category" class="form-control" required>
+    <option value="">Select a category</option>
+    <% [
+      ['rice-meals',    'Rice Meals'],
+      ['swallow-meals', 'Swallow Meals'],
+      ['breakfast',     'Breakfast'],
+      ['snacks',        'Snacks'],
+      ['drinks',        'Drinks'],
+      ['combo-offers',  'Combo Offers'],
+    ].forEach(([val, label]) => { %>
+    <option value="<%= val %>" <%= (item && item.category === val) ? 'selected' : '' %>><%= label %></option>
+    <% }) %>
+  </select>
+</div>
 
         <div class="form-row-2">
           <div class="form-group">
@@ -68,13 +69,15 @@
         </div>
 
         <div class="form-row-2" style="margin-top:4px">
-          <div class="form-group">
-            <label>Available?</label>
-            <select name="isAvailable" class="form-control">
-              <option value="true"  <%= (!item || item.isAvailable)  ? 'selected' : '' %>>Available</option>
-<option value="false" <%= (item && !item.isAvailable) ? 'selected' : '' %>>Unavailable</option>
-            </select>
-          </div>
+         <div class="form-group">
+  <label for="isAvailable">
+    <i class="fas fa-circle-check" aria-hidden="true"></i> Availability <span class="required">*</span>
+  </label>
+  <select id="isAvailable" name="isAvailable" class="form-control">
+    <option value="true"  <%= (!item || item.isAvailable)  ? 'selected' : '' %>>Available</option>
+    <option value="false" <%= (item && !item.isAvailable) ? 'selected' : '' %>>Unavailable</option>
+  </select>
+</div>
           <div class="form-group">
             <label>Featured (show on homepage)?</label>
             <select name="isFeatured" class="form-control">
