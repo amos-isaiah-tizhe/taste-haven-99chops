@@ -2,10 +2,12 @@
  * admin.js — all admin panel interactions
  * CSP-compliant: zero inline handlers
  */
-import { apiFetch, showToast } from './utils.js';
+import { apiFetch, showToast, setButtonLoading } from './utils.js';
 
 export function initAdmin() {
   initOrderStatusSelects();
+  initPaymentStatusSelects();
+  initPaymentStatusDetail();
   initNotifyModal();
   initToggleAvailability();
   initDeleteButtons();
@@ -52,14 +54,94 @@ function initOrderStatusSelects() {
   });
 }
 
+/* ── Payment status dropdowns (orders list) ─────────────────── */
+function initPaymentStatusSelects() {
+  document.querySelectorAll('.payment-status-select').forEach(select => {
+    // Store initial value for revert on error
+    select.dataset.previous = select.value;
+
+    select.addEventListener('focus', () => {
+      select.dataset.previous = select.value;
+    });
+
+    select.addEventListener('change', async () => {
+      const orderId       = select.dataset.orderId;
+      const paymentStatus = select.value;
+
+      try {
+        const res = await apiFetch(`/admin/orders/${orderId}/payment-status`, {
+          method: 'POST',
+          body:   JSON.stringify({ paymentStatus }),
+        });
+
+        if (res.success) {
+          applyPaymentColor(select, paymentStatus);
+          showToast(`Payment marked as ${paymentStatus.toUpperCase()}`, 'success');
+          select.dataset.previous = paymentStatus;
+        } else {
+          showToast(res.error || 'Failed to update payment status', 'error');
+          select.value = select.dataset.previous || 'pending';
+        }
+      } catch {
+        showToast('Network error. Please try again.', 'error');
+        select.value = select.dataset.previous || 'pending';
+      }
+    });
+  });
+}
+
+/* ── Payment status on order detail page ────────────────────── */
+function initPaymentStatusDetail() {
+  const updateBtn    = document.getElementById('updatePaymentStatusBtn');
+  const selectDetail = document.getElementById('paymentStatusSelect');
+  if (!updateBtn || !selectDetail) return;
+
+  updateBtn.addEventListener('click', async () => {
+    const orderId       = updateBtn.dataset.orderId;
+    const paymentStatus = selectDetail.value;
+    const done          = setButtonLoading(updateBtn, 'Saving...');
+
+    try {
+      const res = await apiFetch(`/admin/orders/${orderId}/payment-status`, {
+        method: 'POST',
+        body:   JSON.stringify({ paymentStatus }),
+      });
+
+      if (res.success) {
+        applyPaymentColor(selectDetail, paymentStatus);
+        showToast(`Payment marked as ${paymentStatus.toUpperCase()}`, 'success');
+        done('success');
+      } else {
+        showToast(res.error || 'Failed to update', 'error');
+        done('error');
+      }
+    } catch {
+      showToast('Network error', 'error');
+      done('error');
+    }
+  });
+}
+
+/* ── Payment color helper ────────────────────────────────────── */
+function applyPaymentColor(el, status) {
+  const colors = {
+    paid:     { bg: '#dcfce7', color: '#166534' },
+    pending:  { bg: '#fef3c7', color: '#92400e' },
+    failed:   { bg: '#fee2e2', color: '#991b1b' },
+    refunded: { bg: '#eff6ff', color: '#1e40af' },
+  };
+  const c = colors[status] || colors.pending;
+  el.style.background = c.bg;
+  el.style.color      = c.color;
+}
+
 /* ── Notify customer modal ──────────────────────────────────── */
 function initNotifyModal() {
-  const modal   = document.getElementById('notifyModal');
-  const closeBtn= document.getElementById('notifyModalClose');
-  const sendBtn = document.getElementById('notifySendBtn');
+  const modal    = document.getElementById('notifyModal');
+  const closeBtn = document.getElementById('notifyModalClose');
+  const sendBtn  = document.getElementById('notifySendBtn');
   if (!modal) return;
 
-  // Open triggers
   document.querySelectorAll('[data-notify-order]').forEach(btn => {
     btn.addEventListener('click', () => {
       modal.dataset.orderId = btn.dataset.notifyOrder;
@@ -67,7 +149,7 @@ function initNotifyModal() {
       const messageEl = document.getElementById('notifMessage');
       if (titleEl)   titleEl.value   = '';
       if (messageEl) messageEl.value = '';
-      modal.removeAttribute('hidden');
+      modal.style.display = 'flex';
       document.body.style.overflow = 'hidden';
     });
   });
@@ -75,11 +157,10 @@ function initNotifyModal() {
   closeBtn?.addEventListener('click', closeNotifyModal);
   modal.addEventListener('click', e => { if (e.target === modal) closeNotifyModal(); });
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && overlay.style.display === 'flex') closeCustomizeModal();
+    if (e.key === 'Escape' && modal.style.display === 'flex') closeNotifyModal();
   });
   sendBtn?.addEventListener('click', sendNotification);
 
-  // Quick template buttons
   document.querySelectorAll('[data-notif-template]').forEach(btn => {
     btn.addEventListener('click', () => {
       const [title, message] = btn.dataset.notifTemplate.split('||');
@@ -93,7 +174,7 @@ function initNotifyModal() {
 
 function closeNotifyModal() {
   const modal = document.getElementById('notifyModal');
-  modal?.setAttribute('hidden', '');
+  if (modal) modal.style.display = 'none';
   document.body.style.overflow = '';
 }
 
@@ -102,14 +183,25 @@ async function sendNotification() {
   const orderId = modal?.dataset.orderId;
   const title   = document.getElementById('notifTitle')?.value.trim();
   const message = document.getElementById('notifMessage')?.value.trim();
+  const sendBtn = document.getElementById('notifySendBtn');
   if (!title || !message) { showToast('Title and message are required', 'error'); return; }
+  const done = setButtonLoading(sendBtn, 'Sending...');
   try {
     const data = await apiFetch(`/admin/orders/${orderId}/notify-customer`, {
       method: 'POST', body: JSON.stringify({ title, message }),
     });
-    if (data.success) { showToast('Customer notified!', 'success'); closeNotifyModal(); }
-    else showToast(data.error || 'Failed to notify', 'error');
-  } catch { showToast('Network error', 'error'); }
+    if (data.success) {
+      showToast('Customer notified!', 'success');
+      done('success');
+      closeNotifyModal();
+    } else {
+      showToast(data.error || 'Failed to notify', 'error');
+      done('error');
+    }
+  } catch {
+    showToast('Network error', 'error');
+    done('error');
+  }
 }
 
 /* ── Menu availability toggle ───────────────────────────────── */
@@ -117,7 +209,7 @@ function initToggleAvailability() {
   document.querySelectorAll('[data-toggle-item]').forEach(btn => {
     btn.addEventListener('click', async () => {
       const itemId = btn.dataset.toggleItem;
-      btn.disabled = true;
+      const done   = setButtonLoading(btn);
       try {
         const data = await apiFetch(`/admin/menu/${itemId}/toggle`, { method: 'POST' });
         if (data.success) {
@@ -129,11 +221,19 @@ function initToggleAvailability() {
             status.className   = `avail-status ${data.isAvailable ? 'status-avail' : 'status-unavail'}`;
           }
           card?.classList.toggle('unavailable-row', !data.isAvailable);
-          btn.textContent = data.isAvailable ? 'Mark Unavailable' : 'Mark Available';
-          btn.className   = data.isAvailable ? 'btn btn-sm btn-warning' : 'btn btn-sm btn-success';
-        } else { showToast(data.error || 'Failed', 'error'); }
-      } catch { showToast('Network error', 'error'); }
-      btn.disabled = false;
+          btn.innerHTML = data.isAvailable
+            ? '<i class="fas fa-eye-slash" aria-hidden="true"></i> Mark Unavailable'
+            : '<i class="fas fa-eye" aria-hidden="true"></i> Mark Available';
+          btn.className = data.isAvailable ? 'btn btn-sm btn-warning' : 'btn btn-sm btn-success';
+          done('success');
+        } else {
+          showToast(data.error || 'Failed', 'error');
+          done('error');
+        }
+      } catch {
+        showToast('Network error', 'error');
+        done('error');
+      }
     });
   });
 }
@@ -143,14 +243,22 @@ function initDeleteButtons() {
   document.querySelectorAll('[data-delete-url]').forEach(btn => {
     btn.addEventListener('click', async () => {
       if (!confirm(btn.dataset.deleteConfirm || 'Delete this item?')) return;
+      const done = setButtonLoading(btn, 'Deleting...');
       try {
         const data = await apiFetch(btn.dataset.deleteUrl, { method: 'DELETE' });
         if (data.success) {
           showToast('Deleted successfully', 'success');
+          done('success');
           btn.closest('[data-deletable-row]')?.remove();
           setTimeout(() => location.reload(), 800);
-        } else { showToast(data.error || 'Failed to delete', 'error'); }
-      } catch { showToast('Network error', 'error'); }
+        } else {
+          showToast(data.error || 'Failed to delete', 'error');
+          done('error');
+        }
+      } catch {
+        showToast('Network error', 'error');
+        done('error');
+      }
     });
   });
 }
@@ -160,14 +268,22 @@ function initToggleUsers() {
   document.querySelectorAll('[data-toggle-user]').forEach(btn => {
     btn.addEventListener('click', async () => {
       const userId = btn.dataset.toggleUser;
+      const done   = setButtonLoading(btn);
       try {
         const data = await apiFetch(`/admin/users/${userId}/toggle`, { method: 'POST' });
         if (data.success) {
           showToast(`User ${data.isActive ? 'activated' : 'deactivated'}`, 'success');
           btn.textContent = data.isActive ? 'Deactivate' : 'Activate';
           btn.className   = data.isActive ? 'btn btn-sm btn-warning' : 'btn btn-sm btn-success';
-        } else { showToast(data.error || 'Failed', 'error'); }
-      } catch { showToast('Network error', 'error'); }
+          done('success');
+        } else {
+          showToast(data.error || 'Failed', 'error');
+          done('error');
+        }
+      } catch {
+        showToast('Network error', 'error');
+        done('error');
+      }
     });
   });
 }
@@ -178,13 +294,21 @@ function initRoleSelects() {
     sel.addEventListener('change', async () => {
       const userId = sel.dataset.roleUser;
       const role   = sel.value;
-      if (!confirm(`Change this user's role to "${role}"?`)) { sel.value = sel.dataset.originalRole; return; }
+      if (!confirm(`Change this user's role to "${role}"?`)) {
+        sel.value = sel.dataset.originalRole;
+        return;
+      }
       try {
         const data = await apiFetch(`/admin/users/${userId}/role`, {
           method: 'POST', body: JSON.stringify({ role }),
         });
-        if (data.success) { showToast('Role updated!', 'success'); sel.dataset.originalRole = role; }
-        else { showToast(data.error || 'Failed', 'error'); sel.value = sel.dataset.originalRole; }
+        if (data.success) {
+          showToast('Role updated!', 'success');
+          sel.dataset.originalRole = role;
+        } else {
+          showToast(data.error || 'Failed', 'error');
+          sel.value = sel.dataset.originalRole;
+        }
       } catch { showToast('Network error', 'error'); }
     });
   });
@@ -200,6 +324,7 @@ function initBroadcast() {
     const target  = document.getElementById('broadcastTarget')?.value;
     if (!title || !message) { showToast('Title and message required', 'error'); return; }
     if (!confirm(`Send broadcast to ${target}?`)) return;
+    const done = setButtonLoading(sendBtn, 'Sending...');
     try {
       const data = await apiFetch('/admin/notifications/broadcast', {
         method: 'POST', body: JSON.stringify({ title, message, target }),
@@ -208,8 +333,15 @@ function initBroadcast() {
         showToast(data.message, 'success');
         document.getElementById('broadcastTitle').value   = '';
         document.getElementById('broadcastMessage').value = '';
-      } else { showToast(data.error || 'Failed', 'error'); }
-    } catch { showToast('Network error', 'error'); }
+        done('success');
+      } else {
+        showToast(data.error || 'Failed', 'error');
+        done('error');
+      }
+    } catch {
+      showToast('Network error', 'error');
+      done('error');
+    }
   });
 }
 
@@ -219,10 +351,20 @@ function initSeedMenu() {
   if (!btn) return;
   btn.addEventListener('click', async () => {
     if (!confirm('Re-seed default Taste Heaven menu items?')) return;
+    const done = setButtonLoading(btn, 'Seeding...');
     try {
       const data = await apiFetch('/admin/seed-menu', { method: 'POST' });
-      if (data.success) { showToast('Menu seeded!', 'success'); setTimeout(() => location.reload(), 1000); }
-      else showToast(data.error || 'Seed failed', 'error');
-    } catch { showToast('Network error', 'error'); }
+      if (data.success) {
+        showToast('Menu seeded!', 'success');
+        done('success');
+        setTimeout(() => location.reload(), 1000);
+      } else {
+        showToast(data.error || 'Seed failed', 'error');
+        done('error');
+      }
+    } catch {
+      showToast('Network error', 'error');
+      done('error');
+    }
   });
 }

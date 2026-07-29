@@ -18,7 +18,33 @@
       </div>
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
         <span class="status-badge status-<%= order.status %>"><%= order.status.toUpperCase() %></span>
-        <span class="status-badge status-payment-<%= order.paymentStatus %>"><%= order.paymentStatus.toUpperCase() %></span>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+  <span style="color:var(--gray)">Payment Status</span>
+  <% if (order.paymentMethod === 'card') { %>
+  <span class="status-badge status-payment-<%= order.paymentStatus %>">
+    <%= order.paymentStatus.toUpperCase() %>
+  </span>
+  <% } else { %>
+  <select id="paymentStatusSelect"
+    data-order-id="<%= order._id %>"
+    style="font-size:0.82rem;padding:5px 10px;border-radius:6px;border:1px solid var(--gray-light);cursor:pointer;
+           background:<%= order.paymentStatus==='paid' ? '#dcfce7' : order.paymentStatus==='failed' ? '#fee2e2' : '#fef3c7' %>;
+           color:<%= order.paymentStatus==='paid' ? '#166534' : order.paymentStatus==='failed' ? '#991b1b' : '#92400e' %>">
+    <option value="pending"  <%= order.paymentStatus==='pending'  ? 'selected' : '' %>>PENDING</option>
+    <option value="paid"     <%= order.paymentStatus==='paid'     ? 'selected' : '' %>>PAID</option>
+    <option value="failed"   <%= order.paymentStatus==='failed'   ? 'selected' : '' %>>FAILED</option>
+    <option value="refunded" <%= order.paymentStatus==='refunded' ? 'selected' : '' %>>REFUNDED</option>
+  </select>
+  <% } %>
+</div>
+<% if (order.paymentMethod !== 'card') { %>
+<div style="text-align:right;margin-top:4px">
+  <button id="updatePaymentStatusBtn" class="btn btn-sm btn-success"
+    data-order-id="<%= order._id %>">
+    <i class="fas fa-check" aria-hidden="true"></i> Confirm Payment
+  </button>
+</div>
+<% } %>
       </div>
     </div>
 

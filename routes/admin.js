@@ -160,6 +160,58 @@ router.get('/orders/:id', async (req, res) => {
   }
 });
 
+// ─── Update Payment Status (manual — cash/transfer only) ──────────────────
+router.post('/orders/:id/payment-status', async (req, res) => {
+  try {
+    const { paymentStatus } = req.body;
+    const validStatuses = ['pending', 'paid', 'failed', 'refunded'];
+
+    if (!validStatuses.includes(paymentStatus)) {
+      return res.json({ success: false, error: 'Invalid payment status' });
+    }
+
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.json({ success: false, error: 'Order not found' });
+
+    // Block manual update for card payments — Paystack handles those
+    if (order.paymentMethod === 'card') {
+      return res.json({
+        success: false,
+        error: 'Card payment status is managed automatically by Paystack.',
+      });
+    }
+
+    await Order.findByIdAndUpdate(req.params.id, {
+      paymentStatus,
+      $push: {
+        statusHistory: {
+          status:    order.status,
+          message:   `Payment status manually updated to ${paymentStatus} by admin`,
+          updatedBy: req.session.user._id,
+          timestamp: new Date(),
+        },
+      },
+    });
+
+    // Notify customer if payment confirmed
+    if (paymentStatus === 'paid') {
+      try {
+        const { notifyPaymentReceived } = require('../utils/notifications');
+        await notifyPaymentReceived(order);
+      } catch (e) { /* silent */ }
+    }
+
+    res.json({
+      success: true,
+      message: `Payment status updated to ${paymentStatus}`,
+      paymentStatus,
+    });
+  } catch (err) {
+    console.error('Payment status update error:', err);
+    res.status(500).json({ success: false, error: 'Failed to update payment status' });
+  }
+});
+
 // ─── Update Order Status ───────────────────────────────────────────────────────
 router.post('/orders/:id/status', async (req, res) => {
   try {

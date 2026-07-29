@@ -53,74 +53,135 @@
         <table class="admin-table">
           <thead>
             <tr>
-              <th scope="col">Order #</th>
-              <th scope="col">Customer</th>
-              <th scope="col">Items</th>
-              <th scope="col">Total</th>
-              <th scope="col">Type</th>
-              <th scope="col">Payment</th>
-              <th scope="col">Status</th>
-              <th scope="col">Scheduled</th>
-              <th scope="col">Date</th>
-              <th scope="col">Actions</th>
+              <th scope="col" style="min-width:140px">Order #</th>
+<th scope="col" style="min-width:150px">Customer</th>
+<th scope="col" style="min-width:70px">Items</th>
+<th scope="col" style="min-width:90px">Total</th>
+              <th scope="col" style="min-width:80px">Type</th>
+<th scope="col" style="min-width:130px">Payment</th>
+<th scope="col" style="min-width:160px">Status</th>
+<th scope="col" style="min-width:90px">Scheduled</th>
+<th scope="col" style="min-width:90px">Date</th>
+<th scope="col" style="min-width:100px">Actions</th>
             </tr>
           </thead>
           <tbody>
             <% orders.forEach(order => { %>
-            <tr id="order-row-<%= order._id %>">
-              <td><strong>#<%= order.orderNumber %></strong></td>
-              <td>
-                <div style="font-weight:600;font-size:0.88rem"><%= order.customer?.firstName %> <%= order.customer?.lastName %></div>
-                <a href="tel:<%= order.customer?.phone %>" style="font-size:0.78rem;color:var(--gray)"><%= order.customer?.phone %></a>
-              </td>
-              <td style="font-size:0.82rem;color:var(--gray)"><%= order.items?.length||0 %> item(s)</td>
-              <td><strong style="color:var(--red)">&#8358;<%= order.total.toLocaleString('en-NG') %></strong></td>
-              <td>
-                <span class="delivery-tag delivery-tag-<%= order.deliveryType %>">
-                  <i class="fas <%= order.deliveryType==='delivery'?'fa-motorcycle':'fa-store' %>" aria-hidden="true"></i>
-                  <%= order.deliveryType %>
-                </span>
-              </td>
-              <td>
-                <div style="font-size:0.78rem">
-                  <span class="status-badge status-payment-<%= order.paymentStatus %>"><%= order.paymentStatus %></span><br/>
-                  <span style="color:var(--gray)"><%= order.paymentMethod.toUpperCase() %></span>
-                </div>
-              </td>
-              <td>
-                <select class="status-select"
-                  data-order-id="<%= order._id %>"
-                  aria-label="Status for order #<%= order.orderNumber %>">
-                  <% ['pending','confirmed','preparing','ready','out-for-delivery','delivered','cancelled'].forEach(s=>{ %>
-                  <option value="<%= s %>" <%= order.status===s?'selected':'' %>><%= s.toUpperCase() %></option>
-                  <% }) %>
-                </select>
-              </td>
-              <td style="font-size:0.8rem;white-space:nowrap">
-                <time datetime="<%= order.scheduledTime %>">
-                  <% const st=new Date(order.scheduledTime); %>
-                  <%= st.toLocaleDateString('en-NG',{month:'short',day:'numeric'}) %><br/>
-                  <%= st.toLocaleTimeString('en-NG',{hour:'2-digit',minute:'2-digit'}) %>
-                </time>
-              </td>
-              <td style="font-size:0.78rem;color:var(--gray);white-space:nowrap">
-                <time datetime="<%= order.createdAt %>">
-                  <%= new Date(order.createdAt).toLocaleDateString('en-NG',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) %>
-                </time>
-              </td>
-              <td>
-                <div class="actions-cell">
-                  <a href="/admin/orders/<%= order._id %>" class="btn btn-sm btn-primary" aria-label="View order #<%= order.orderNumber %>">
-                    <i class="fas fa-eye" aria-hidden="true"></i>
-                  </a>
-                  <button class="btn btn-sm btn-outline"
-                    data-notify-order="<%= order._id %>"
-                    aria-label="Notify customer for #<%= order.orderNumber %>">
-                    <i class="fas fa-bell" aria-hidden="true"></i>
-                  </button>
-                </div>
-              </td>
-            </tr>
+<tr id="order-row-<%= order._id %>"
+  style="<%= (order.status==='cancelled'||order.status==='delivered') ? 'opacity:0.5' : '' %>">
+
+  <!-- ORDER # -->
+  <td>
+    <div style="font-weight:700;font-size:0.88rem;color:var(--red)">#<%= order.orderNumber %></div>
+    <div style="font-size:0.75rem;color:var(--gray)">#<%= order._id.toString().slice(-6).toUpperCase() %></div>
+  </td>
+
+  <!-- CUSTOMER -->
+  <td>
+    <div style="font-weight:600;font-size:0.88rem">
+      <%= order.customer?.firstName || '' %> <%= order.customer?.lastName || '' %>
+    </div>
+    <div style="font-size:0.75rem;color:var(--gray)"><%= order.customer?.phone || '' %></div>
+  </td>
+
+  <!-- ITEMS -->
+  <td>
+    <span style="font-weight:600"><%= order.items.length %></span>
+    <span style="font-size:0.78rem;color:var(--gray)">item(s)</span>
+  </td>
+
+  <!-- TOTAL -->
+  <td style="font-weight:700;color:var(--red)">
+    &#8358;<%= order.total.toLocaleString('en-NG') %>
+  </td>
+
+  <!-- TYPE -->
+  <td>
+    <div style="font-size:0.78rem;display:flex;align-items:center;gap:4px">
+      <i class="fas <%= order.deliveryType==='delivery' ? 'fa-motorcycle' : 'fa-store' %>"
+         aria-hidden="true"></i>
+      <%= order.deliveryType %>
+    </div>
+  </td>
+
+  <!-- PAYMENT -->
+  <td>
+    <div style="display:flex;flex-direction:column;gap:5px">
+      <% if (order.paymentMethod === 'card') { %>
+        <span class="status-badge status-payment-<%= order.paymentStatus %>">
+          <%= order.paymentStatus.toUpperCase() %>
+        </span>
+        <span style="color:var(--gray);font-size:0.72rem">
+          <i class="fas fa-credit-card" aria-hidden="true"></i> CARD (Auto)
+        </span>
+      <% } else { %>
+        <select class="payment-status-select"
+          data-order-id="<%= order._id %>"
+          aria-label="Payment status for order #<%= order.orderNumber %>"
+          style="font-size:0.75rem;padding:4px 8px;border-radius:6px;font-weight:600;
+                 border:1px solid var(--gray-light);cursor:pointer;
+                 background:<%= order.paymentStatus==='paid' ? '#dcfce7' : order.paymentStatus==='failed' ? '#fee2e2' : '#fef3c7' %>;
+                 color:<%= order.paymentStatus==='paid' ? '#166534' : order.paymentStatus==='failed' ? '#991b1b' : '#92400e' %>">
+          <option value="pending"  <%= order.paymentStatus==='pending'  ? 'selected':'' %>>PENDING</option>
+          <option value="paid"     <%= order.paymentStatus==='paid'     ? 'selected':'' %>>PAID</option>
+          <option value="failed"   <%= order.paymentStatus==='failed'   ? 'selected':'' %>>FAILED</option>
+          <option value="refunded" <%= order.paymentStatus==='refunded' ? 'selected':'' %>>REFUNDED</option>
+        </select>
+        <span style="color:var(--gray);font-size:0.72rem">
+          <i class="fas <%= order.paymentMethod==='cash' ? 'fa-money-bills' : 'fa-university' %>"
+             aria-hidden="true"></i>
+          <%= order.paymentMethod.toUpperCase() %>
+        </span>
+      <% } %>
+    </div>
+  </td>
+
+  <!-- STATUS -->
+  <td>
+    <select class="status-select"
+      data-order-id="<%= order._id %>"
+      aria-label="Update order status"
+      style="font-size:0.82rem;min-width:140px">
+      <% ['pending','confirmed','preparing','ready','out-for-delivery','delivered','cancelled'].forEach(s => { %>
+      <option value="<%= s %>" <%= order.status===s ? 'selected':'' %>>
+        <%= s.toUpperCase().replace(/-/g,' ') %>
+      </option>
+      <% }) %>
+    </select>
+  </td>
+
+  <!-- SCHEDULED -->
+  <td class="time-cell">
+    <div><%= new Date(order.scheduledTime).toLocaleDateString('en-NG',{day:'numeric',month:'short'}) %></div>
+    <div style="font-size:0.75rem;color:var(--gray)">
+      <%= new Date(order.scheduledTime).toLocaleTimeString('en-NG',{hour:'2-digit',minute:'2-digit'}) %>
+    </div>
+  </td>
+
+  <!-- DATE PLACED -->
+  <td class="time-cell">
+    <div><%= new Date(order.createdAt).toLocaleDateString('en-NG',{day:'numeric',month:'short'}) %></div>
+    <div style="font-size:0.75rem;color:var(--gray)">
+      <%= new Date(order.createdAt).toLocaleTimeString('en-NG',{hour:'2-digit',minute:'2-digit'}) %>
+    </div>
+  </td>
+
+  <!-- ACTIONS -->
+  <td>
+    <div class="actions-cell">
+      <a href="/admin/orders/<%= order._id %>"
+         class="btn btn-sm btn-primary" title="View order details">
+        <i class="fas fa-eye" aria-hidden="true"></i>
+      </a>
+      <button class="btn btn-sm btn-outline"
+        data-notify-order="<%= order._id %>"
+        title="Notify customer">
+        <i class="fas fa-bell" aria-hidden="true"></i>
+      </button>
+    </div>
+  </td>
+
+</tr>
             <% }) %>
           </tbody>
         </table>
