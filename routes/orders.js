@@ -144,11 +144,22 @@ router.post('/submit', requireAuth, [
     // Populate for WhatsApp
     const populatedOrder = await Order.findById(order._id).populate('items.menuItem');
 
-    // Notify admins
-    await notifyNewOrder(populatedOrder);
+// Notify admins
+await notifyNewOrder(populatedOrder);
 
-    // Clear cart
-    req.session.cart = [];
+// Send order confirmation email to customer (non-blocking)
+try {
+  const { sendOrderConfirmation } = require('../utils/email');
+  const customer = await User.findById(user._id).select('email firstName');
+  if (customer?.email) {
+    sendOrderConfirmation(populatedOrder, customer).catch(e =>
+      console.error('[Email] Order confirmation failed:', e.message)
+    );
+  }
+} catch (e) { /* silent */ }
+
+// Clear cart
+req.session.cart = [];
 
     // Build WhatsApp URL
     const whatsappUrl = buildWhatsAppUrl(populatedOrder, process.env.WHATSAPP_NUMBER);
@@ -266,14 +277,61 @@ router.post('/verify-payment', requireAuth, async (req, res) => {
 // ─── Rate Order ────────────────────────────────────────────────────────────────
 router.post('/:id/rate', requireAuth, async (req, res) => {
   try {
-    const { rating, comment } = req.body;
-    if (!rating || rating < 1 || rating > 5) return res.status(400).json({ success: false, error: 'Rating must be 1-5' });
-    await Order.findOneAndUpdate(
-      { _id: req.params.id, customer: req.session.user._id, status: 'delivered' },
-      { rating: { score: parseInt(rating), comment: comment || '', ratedAt: new Date() } }
-    );
-    res.json({ success: true, message: 'Thank you for your rating!' });
+    const { rating, comment, aspects } = req.body;
+    const score = parseInt(rating);
+
+    if (!score || score < 1 || score > 5) {
+      return res.status(400).json({ success: false, error: 'Rating must be between 1 and 5' });
+    }
+
+    // Find the order — must belong to this customer and be delivered
+    const order = await Order.findOne({
+      _id:      req.params.id,
+      customer: req.session.user._id,
+      status:   'delivered',
+    });
+
+    if (!order) {
+      return res.status(404).json({ success: false, error: 'Order not found or not yet delivered' });
+    }
+
+    // Prevent double rating
+    if (order.rating?.score) {
+      return res.status(400).json({ success: false, error: 'You have already rated this order' });
+    }
+
+    // Save rating on the Order
+    await Order.findByIdAndUpdate(req.params.id, {
+      rating: {
+        score,
+        comment: comment?.trim() || '',
+        ratedAt: new Date(),
+      },
+    });
+
+    // Also save to Review collection
+    const Review = require('../models/Review');
+    await Review.create({
+      customer: req.session.user._id,
+      order:    req.params.id,
+      rating:   score,
+      comment:  comment?.trim() || '',
+      aspects: {
+        food:      aspects?.food      ? parseInt(aspects.food)      : null,
+        delivery:  aspects?.delivery  ? parseInt(aspects.delivery)  : null,
+        packaging: aspects?.packaging ? parseInt(aspects.packaging) : null,
+        value:     aspects?.value     ? parseInt(aspects.value)     : null,
+      },
+      isApproved: true,
+    });
+
+    res.json({ success: true, message: 'Thank you for your rating!', score });
   } catch (err) {
+    console.error('Rate order error:', err);
+    // Handle duplicate review
+    if (err.code === 11000) {
+      return res.status(400).json({ success: false, error: 'You have already rated this order' });
+    }
     res.status(500).json({ success: false, error: 'Failed to save rating' });
   }
 });

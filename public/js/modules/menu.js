@@ -165,63 +165,185 @@ async function confirmCustomize() {
 
 /* ── Rating modal (My Orders page) ──────────────────────────── */
 export function initRatingModal() {
-  const modal   = document.getElementById('rateModal');
-  const closeBtn= document.getElementById('rateModalClose');
-  const submitBtn= document.getElementById('rateSubmitBtn');
+  const modal     = document.getElementById('rateModal');
+  const closeBtn  = document.getElementById('rateModalClose');
+  const closeBtn2 = document.getElementById('rateModalClose2');
+  const submitBtn = document.getElementById('rateSubmitBtn');
   if (!modal) return;
 
-  closeBtn?.addEventListener('click',  closeRateModal);
-  submitBtn?.addEventListener('click', submitRating);
-  modal.addEventListener('click', e => { if (e.target === modal) closeRateModal(); });
+  let currentRating = 0;
+  let currentOrderId = null;
+  const aspectRatings = { food: 0, delivery: 0, packaging: 0, value: 0 };
 
-  // Star buttons
+  const rateLabels = {
+    1: 'Poor — we\'ll do better',
+    2: 'Fair — room to improve',
+    3: 'Good — pretty satisfied',
+    4: 'Great — really enjoyed it!',
+    5: 'Excellent — absolutely loved it!',
+  };
+
+  // Open modal when Rate Order button clicked
+  document.querySelectorAll('[data-rate-order]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentOrderId = btn.dataset.rateOrder;
+      currentRating  = 0;
+      Object.keys(aspectRatings).forEach(k => aspectRatings[k] = 0);
+
+      // Set order number in modal
+      const orderNum = btn.dataset.orderNum || '';
+      const numEl = document.getElementById('rateOrderNum');
+      if (numEl) numEl.textContent = `#${orderNum}`;
+
+      // Reset stars
+      modal.querySelectorAll('.star-input i').forEach(i => i.className = 'far fa-star');
+      modal.querySelectorAll('.star-input').forEach(s => s.setAttribute('aria-pressed', 'false'));
+      modal.querySelectorAll('.aspect-star').forEach(s => {
+        s.style.color = 'var(--gray-light)';
+        s.setAttribute('aria-pressed', 'false');
+      });
+
+      // Reset label, comment, char count
+      const label = document.getElementById('rateLabel');
+      if (label) label.textContent = 'Tap a star to rate';
+      const comment = document.getElementById('ratingComment');
+      if (comment) comment.value = '';
+      const charCount = document.getElementById('charCount');
+      if (charCount) charCount.textContent = '0 / 500 characters';
+
+      // Open modal
+      modal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    });
+  });
+
+  // Overall star rating
   modal.querySelectorAll('.star-input').forEach(star => {
     star.addEventListener('click', () => {
       currentRating = Number(star.dataset.val);
+      const label   = document.getElementById('rateLabel');
+      if (label) label.textContent = rateLabels[currentRating] || '';
+
       modal.querySelectorAll('.star-input').forEach((s, i) => {
-        s.setAttribute('aria-pressed', i < currentRating ? 'true' : 'false');
-        s.querySelector('i').className = i < currentRating ? 'fas fa-star' : 'far fa-star';
+        const filled = i < currentRating;
+        s.querySelector('i').className = filled ? 'fas fa-star' : 'far fa-star';
+        s.querySelector('i').style.color = filled ? 'var(--gold)' : '';
+        s.setAttribute('aria-pressed', filled ? 'true' : 'false');
+      });
+    });
+
+    // Hover preview
+    star.addEventListener('mouseenter', () => {
+      const val = Number(star.dataset.val);
+      modal.querySelectorAll('.star-input').forEach((s, i) => {
+        s.querySelector('i').style.color = i < val ? 'var(--gold)' : 'var(--gray-light)';
+      });
+    });
+    star.addEventListener('mouseleave', () => {
+      modal.querySelectorAll('.star-input').forEach((s, i) => {
+        const filled = i < currentRating;
+        s.querySelector('i').style.color = filled ? 'var(--gold)' : '';
       });
     });
   });
 
-  // Trigger buttons on orders list
-  document.querySelectorAll('[data-rate-order]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      modal.dataset.orderId = btn.dataset.rateOrder;
-      currentRating = 0;
-      modal.querySelectorAll('.star-input i').forEach(i => i.className = 'far fa-star');
-      const comment = document.getElementById('ratingComment');
-      if (comment) comment.value = '';
-      modal.removeAttribute('hidden');
-      document.body.style.overflow = 'hidden';
+  // Aspect star ratings
+  modal.querySelectorAll('.aspect-star').forEach(star => {
+    star.addEventListener('click', () => {
+      const aspect = star.dataset.aspect;
+      const val    = Number(star.dataset.val);
+      aspectRatings[aspect] = val;
+
+      // Update that aspect's stars
+      modal.querySelectorAll(`.aspect-star[data-aspect="${aspect}"]`).forEach((s, i) => {
+        s.style.color = i < val ? 'var(--gold)' : 'var(--gray-light)';
+        s.setAttribute('aria-pressed', i < val ? 'true' : 'false');
+      });
+    });
+
+    star.addEventListener('mouseenter', () => {
+      const aspect = star.dataset.aspect;
+      const val    = Number(star.dataset.val);
+      modal.querySelectorAll(`.aspect-star[data-aspect="${aspect}"]`).forEach((s, i) => {
+        s.style.color = i < val ? 'var(--gold)' : 'var(--gray-light)';
+      });
+    });
+    star.addEventListener('mouseleave', () => {
+      const aspect = star.dataset.aspect;
+      const current = aspectRatings[aspect] || 0;
+      modal.querySelectorAll(`.aspect-star[data-aspect="${aspect}"]`).forEach((s, i) => {
+        s.style.color = i < current ? 'var(--gold)' : 'var(--gray-light)';
+      });
     });
   });
-}
 
-function closeRateModal() {
-  const modal = document.getElementById('rateModal');
-  modal?.setAttribute('hidden', '');
-  document.body.style.overflow = '';
-  currentRating = 0;
-}
-
-async function submitRating() {
-  const modal   = document.getElementById('rateModal');
-  const orderId = modal?.dataset.orderId;
-  if (!orderId || !currentRating) { showToast('Please select a star rating', 'error'); return; }
-  const comment = document.getElementById('ratingComment')?.value || '';
-  try {
-    const { apiFetch } = await import('./utils.js');
-    const data = await apiFetch(`/orders/${orderId}/rate`, {
-      method: 'POST', body: JSON.stringify({ rating: currentRating, comment }),
-    });
-    if (data.success) {
-      showToast('Thank you for your rating!', 'success');
-      closeRateModal();
-      setTimeout(() => location.reload(), 1200);
-    } else {
-      showToast(data.error || 'Failed to submit rating', 'error');
+  // Character counter
+  document.getElementById('ratingComment')?.addEventListener('input', e => {
+    const len = e.target.value.length;
+    const el  = document.getElementById('charCount');
+    if (el) {
+      el.textContent = `${len} / 500 characters`;
+      el.style.color = len > 450 ? 'var(--red)' : 'var(--gray-2)';
     }
-  } catch { showToast('Network error', 'error'); }
+  });
+
+  // Close
+  function closeRateModal() {
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+    currentOrderId = null;
+    currentRating  = 0;
+  }
+
+  closeBtn?.addEventListener('click', closeRateModal);
+  closeBtn2?.addEventListener('click', closeRateModal);
+  modal.addEventListener('click', e => { if (e.target === modal) closeRateModal(); });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && modal.style.display === 'flex') closeRateModal();
+  });
+
+  // Submit
+  submitBtn?.addEventListener('click', async () => {
+    if (!currentRating) {
+      showToast('Please select a star rating', 'error');
+      return;
+    }
+
+    const comment = document.getElementById('ratingComment')?.value?.trim() || '';
+    const done    = setButtonLoading(submitBtn, 'Submitting...');
+
+    try {
+      const data = await apiFetch(`/orders/${currentOrderId}/rate`, {
+        method: 'POST',
+        body:   JSON.stringify({
+          rating:  currentRating,
+          comment,
+          aspects: aspectRatings,
+        }),
+      });
+
+      if (data.success) {
+        showToast('Thank you for your feedback!', 'success');
+        done('success');
+
+        // Update button in the list to show rated state
+        const rateBtn = document.querySelector(`[data-rate-order="${currentOrderId}"]`);
+        if (rateBtn) {
+          rateBtn.outerHTML = `
+            <div style="display:flex;align-items:center;gap:4px;font-size:0.82rem;color:var(--gold);font-weight:600">
+              ${'<i class="fas fa-star"></i>'.repeat(currentRating)}
+              <span style="color:var(--gray);margin-left:4px">Rated</span>
+            </div>`;
+        }
+
+        setTimeout(closeRateModal, 800);
+      } else {
+        showToast(data.error || 'Failed to submit rating', 'error');
+        done('error');
+      }
+    } catch {
+      showToast('Network error. Please try again.', 'error');
+      done('error');
+    }
+  });
 }

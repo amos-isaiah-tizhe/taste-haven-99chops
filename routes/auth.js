@@ -69,13 +69,27 @@ router.post('/register', requireGuest, [
    req.session.flashMessage = `Welcome, ${user.firstName}! Your account has been created.`;
     req.session.flashType = 'success';
 
-    req.session.save(err => {
-      if (err) {
-        console.error('Session save error:', err);
-        return res.redirect('/auth/login');
-      }
-      res.redirect('/customer/dashboard');
-    });
+    // Send welcome email (non-blocking)
+try {
+  const { sendWelcomeEmail } = require('../utils/email');
+  sendWelcomeEmail(user).catch(() => {});
+} catch (e) { /* silent */ }
+
+// Send welcome email (non-blocking)
+try {
+  const { sendWelcomeEmail } = require('../utils/email');
+  sendWelcomeEmail(user).catch(e =>
+    console.error('[Email] Welcome email failed:', e.message)
+  );
+} catch (e) { /* silent */ }
+
+req.session.save(err => {
+  if (err) {
+    console.error('Session save error:', err);
+    return res.redirect('/auth/login');
+  }
+  res.redirect('/customer/dashboard');
+});
   } catch (err) {
     console.error('Register error:', err);
     res.render('auth/register', {

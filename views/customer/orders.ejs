@@ -87,11 +87,11 @@
             <i class="fas fa-eye" aria-hidden="true"></i> View Details
           </a>
           <% if (order.status==='delivered' && !order.rating?.score) { %>
-          <button class="btn btn-sm btn-gold"
-            data-rate-order="<%= order._id %>"
-            aria-label="Rate order #<%= order.orderNumber %>">
-            <i class="fas fa-star" aria-hidden="true"></i> Rate Order
-          </button>
+        <button class="btn btn-sm btn-gold"
+  data-rate-order="<%= order._id %>"
+  data-order-num="<%= order.orderNumber %>">
+  <i class="fas fa-star" aria-hidden="true"></i> Rate Order
+</button>
           <% } %>
           <% if (order.status==='pending') { %>
           <span style="font-size:0.82rem;color:var(--gray)">
@@ -117,30 +117,89 @@
 </section>
 
 <!-- Rating Modal -->
-<div class="modal-overlay" id="rateModal" role="dialog" aria-modal="true" aria-labelledby="rateModalTitle" hidden>
-  <div class="modal" style="max-width:420px">
+<div class="modal-overlay" id="rateModal" role="dialog" aria-modal="true"
+     aria-labelledby="rateModalTitle" style="display:none">
+  <div class="modal" style="max-width:460px">
     <div class="modal-header">
-      <h3 id="rateModalTitle"><i class="fas fa-star" aria-hidden="true"></i> Rate Your Order</h3>
+      <h3 id="rateModalTitle">
+        <i class="fas fa-star" style="color:var(--gold)" aria-hidden="true"></i>
+        Rate Your Order
+      </h3>
       <button id="rateModalClose" class="modal-close" aria-label="Close rating dialog">
         <i class="fas fa-times" aria-hidden="true"></i>
       </button>
     </div>
+
     <div class="modal-body">
-      <p style="color:var(--gray);margin-bottom:16px">How was your experience?</p>
-      <div class="star-rating-row" role="group" aria-label="Star rating">
-        <% for(let i=1;i<=5;i++) { %>
+
+      <!-- Order info -->
+      <div id="rateOrderInfo"
+        style="background:var(--bg);border-radius:var(--radius-sm);padding:10px 14px;
+               margin-bottom:18px;font-size:0.88rem;color:var(--gray)">
+        <i class="fas fa-receipt" style="color:var(--red)" aria-hidden="true"></i>
+        Order <strong id="rateOrderNum" style="color:var(--dark)"></strong>
+      </div>
+
+      <!-- Overall rating label -->
+      <p style="font-weight:600;margin-bottom:8px;font-size:0.92rem">
+        Overall Experience <span style="color:var(--red)">*</span>
+      </p>
+      <p id="rateLabel" style="color:var(--gray);font-size:0.82rem;margin-bottom:12px;min-height:18px"></p>
+
+      <!-- Star rating -->
+      <div class="star-rating-row" role="group" aria-label="Overall star rating"
+           style="gap:8px;margin-bottom:20px">
+        <% for(let i=1; i<=5; i++) { %>
         <button type="button" class="star-input" data-val="<%= i %>"
-          aria-label="<%= i %> star<%= i>1?'s':'' %>" aria-pressed="false">
+          aria-label="<%= i %> star<%= i>1?'s':'' %>" aria-pressed="false"
+          style="font-size:2.4rem">
           <i class="far fa-star" aria-hidden="true"></i>
         </button>
         <% } %>
       </div>
-      <div class="form-group" style="margin-top:16px">
-        <label for="ratingComment">Comment <span style="color:var(--gray);font-weight:400">(optional)</span></label>
-        <textarea id="ratingComment" rows="3" class="form-control"
-          placeholder="Tell us what you loved or how we can improve&hellip;"></textarea>
+
+      <!-- Aspect ratings -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px">
+        <% [
+          { id:'food',      icon:'fa-utensils',    label:'Food Quality' },
+          { id:'delivery',  icon:'fa-motorcycle',  label:'Delivery'     },
+          { id:'packaging', icon:'fa-box',         label:'Packaging'    },
+          { id:'value',     icon:'fa-tag',         label:'Value'        },
+        ].forEach(a => { %>
+        <div style="background:var(--bg);border-radius:var(--radius-sm);padding:12px;border:1px solid var(--gray-light)">
+          <div style="font-size:0.78rem;font-weight:600;color:var(--gray);margin-bottom:6px;display:flex;align-items:center;gap:5px">
+            <i class="fas <%= a.icon %>" aria-hidden="true"></i> <%= a.label %>
+          </div>
+          <div class="aspect-stars" data-aspect="<%= a.id %>" role="group"
+               aria-label="<%= a.label %> rating"
+               style="display:flex;gap:3px">
+            <% for(let i=1;i<=5;i++) { %>
+            <button type="button" class="aspect-star"
+              data-aspect="<%= a.id %>" data-val="<%= i %>"
+              aria-label="<%= i %> star" aria-pressed="false"
+              style="font-size:1.1rem;color:var(--gray-light);background:none;border:none;cursor:pointer;padding:1px;transition:color 0.15s">
+              <i class="fas fa-star" aria-hidden="true"></i>
+            </button>
+            <% } %>
+          </div>
+        </div>
+        <% }) %>
       </div>
+
+      <!-- Comment -->
+      <div class="form-group">
+        <label for="ratingComment">
+          <i class="fas fa-comment" aria-hidden="true"></i>
+          Comment <span style="color:var(--gray);font-weight:400">(optional)</span>
+        </label>
+        <textarea id="ratingComment" rows="3" class="form-control"
+          placeholder="Tell us what you loved or how we can improve&hellip;"
+          maxlength="500"></textarea>
+        <small class="form-hint" id="charCount">0 / 500 characters</small>
+      </div>
+
     </div>
+
     <div class="modal-footer">
       <button id="rateModalClose2" class="btn btn-outline">Cancel</button>
       <button id="rateSubmitBtn" class="btn btn-primary">

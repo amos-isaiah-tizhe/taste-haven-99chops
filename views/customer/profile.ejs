@@ -67,25 +67,69 @@
         </form>
       </div>
 
-      <!-- Change Password -->
-      <div class="admin-card">
-        <div class="admin-card-header"><h3><i class="fas fa-lock" aria-hidden="true"></i> Change Password</h3></div>
-        <div class="form-group" style="margin-bottom:14px">
-          <label for="currentPwd">Current Password</label>
-          <input type="password" id="currentPwd" class="form-control" placeholder="Current password" autocomplete="current-password" />
-        </div>
-        <div class="form-group" style="margin-bottom:14px">
-          <label for="newPwd">New Password</label>
-          <input type="password" id="newPwd" class="form-control" placeholder="Min 8 chars" autocomplete="new-password" />
-        </div>
-        <div class="form-group" style="margin-bottom:20px">
-          <label for="confirmPwd">Confirm New Password</label>
-          <input type="password" id="confirmPwd" class="form-control" placeholder="Repeat new password" autocomplete="new-password" />
-        </div>
-        <button id="changePasswordBtn" class="btn btn-primary">
-          <i class="fas fa-key" aria-hidden="true"></i> Change Password
-        </button>
-      </div>
+<!-- Change Password -->
+<div class="admin-card">
+  <div class="admin-card-header">
+    <h3><i class="fas fa-lock" aria-hidden="true"></i> Change Password</h3>
+  </div>
+
+  <!-- Current Password -->
+  <div class="form-group" style="margin-bottom:14px">
+    <label for="currentPwd">Current Password</label>
+    <div class="password-input-wrap">
+      <input type="password" id="currentPwd" class="form-control"
+        placeholder="Enter current password"
+        autocomplete="current-password" />
+      <button type="button" class="password-toggle" aria-label="Show password">
+        <i class="fas fa-eye" aria-hidden="true"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- New Password -->
+  <div class="form-group" style="margin-bottom:6px">
+    <label for="newPwd">New Password</label>
+    <div class="password-input-wrap">
+      <input type="password" id="newPwd" class="form-control"
+        placeholder="Min 8 chars, uppercase, number"
+        autocomplete="new-password" />
+      <button type="button" class="password-toggle" aria-label="Show password">
+        <i class="fas fa-eye" aria-hidden="true"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Strength Meter -->
+  <div class="password-strength" style="margin-bottom:14px">
+    <div class="strength-bar">
+      <div id="pwdStrengthBar" style="height:100%;width:0%;border-radius:4px;transition:all 0.3s"></div>
+    </div>
+    <span id="pwdStrengthLabel" style="font-size:0.75rem;font-weight:600"></span>
+  </div>
+
+  <!-- Confirm Password -->
+  <div class="form-group" style="margin-bottom:20px">
+    <label for="confirmPwd">Confirm New Password</label>
+    <div class="password-input-wrap">
+      <input type="password" id="confirmPwd" class="form-control"
+        placeholder="Repeat new password"
+        autocomplete="new-password" />
+      <button type="button" class="password-toggle" aria-label="Show password">
+        <i class="fas fa-eye" aria-hidden="true"></i>
+      </button>
+    </div>
+  </div>
+
+  <button id="changePasswordBtn" class="btn btn-primary btn-full">
+    <i class="fas fa-key" aria-hidden="true"></i> Change Password
+  </button>
+
+  <!-- Requirements hint -->
+  <div style="margin-top:12px;padding:10px 14px;background:var(--bg);border-radius:var(--radius-sm);font-size:0.78rem;color:var(--gray)">
+    <i class="fas fa-info-circle" style="color:var(--blue)" aria-hidden="true"></i>
+    Password must be at least 8 characters with one uppercase letter and one number.
+  </div>
+</div>
 
       <!-- Account Stats -->
       <div class="admin-card">

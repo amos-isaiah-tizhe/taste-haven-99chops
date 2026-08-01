@@ -132,15 +132,19 @@ app.use(session({
 
 // ── Global Template Locals ────────────────────────────────────
 app.use((req, res, next) => {
-  res.locals.user = req.session.user || null;
-  res.locals.isAdmin = ['admin', 'superadmin'].includes(req.session.user?.role);
-  res.locals.isSuperAdmin = req.session.user?.role === 'superadmin';
-  res.locals.restaurantName = process.env.RESTAURANT_NAME || 'Taste Heaven & 99Chops';
-  res.locals.whatsappNumber = process.env.WHATSAPP_NUMBER || '2349064367123';
-  res.locals.restaurantPhone = process.env.RESTAURANT_PHONE || '08136975564';
-  res.locals.currentPath = req.path;
-  res.locals.flashMessage = req.session.flashMessage || null;
-  res.locals.flashType = req.session.flashType || null;
+res.locals.user = req.session.user || null;
+res.locals.isAdmin = ['admin', 'superadmin'].includes(req.session.user?.role);
+res.locals.isSuperAdmin = req.session.user?.role === 'superadmin';
+res.locals.restaurantName = process.env.RESTAURANT_NAME || 'Taste Heaven & 99Chops';
+res.locals.whatsappNumber = process.env.WHATSAPP_NUMBER || '2349064367123';
+res.locals.restaurantPhone = process.env.RESTAURANT_PHONE || '08136975564';
+res.locals.currentPath = req.path;
+res.locals.flashMessage = req.session.flashMessage || null;
+res.locals.flashType = req.session.flashType || null;
+res.locals.paystackPublicKey = process.env.PAYSTACK_PUBLIC_KEY || '';
+res.locals.developerName = process.env.DEVELOPER_NAME || 'Amos Isaiah Tizhe';
+res.locals.developerBrand = process.env.DEVELOPER_BRAND || 'OneXportal';
+res.locals.developerUrl = process.env.DEVELOPER_URL || 'https://OneXportalhq.com';
   if (req.session.flashMessage) {
     delete req.session.flashMessage;
     delete req.session.flashType;

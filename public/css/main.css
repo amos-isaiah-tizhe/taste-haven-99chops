@@ -2360,3 +2360,20 @@ ul { list-style: none; }
 .admin-qa-card {
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+/* ─── Rating Modal ────────────────────────────────────────────── */
+.star-input {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 2.4rem;
+  color: var(--gray-light);
+  padding: 2px 4px;
+  transition: color 0.15s, transform 0.1s;
+  line-height: 1;
+}
+.star-input:hover  { transform: scale(1.2); }
+.star-input:active { transform: scale(0.95); }
+
+.aspect-star { transition: color 0.15s, transform 0.1s; }
+.aspect-star:hover { transform: scale(1.15); }
